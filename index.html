@@ -1,0 +1,897 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Jimmy's Homepage · 书屋</title>
+<meta name="description" content="Jimmy 的个人主页：一间雨夜里的书屋。抽一本书，读一段人生。">
+<meta name="theme-color" content="#0b0c11">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Jimmy's Homepage · 书屋">
+<meta property="og:description" content="一间雨夜里的书屋。抽一本书，读一段人生。">
+<meta property="og:image" content="assets/og.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="assets/favicon.png">
+<link rel="apple-touch-icon" href="assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Long+Cang&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&family=VT323&family=ZCOOL+QingKe+HuangYou&display=swap">
+<style>
+/* Layout: full-bleed baked 3D room at night; slim HUD on the edges; books and the notepad open a yellow legal pad on the right (bottom sheet on phones); other objects get a small caption card */
+:root{
+  --night:#0b0c11;
+  --hud:#efe6cf;
+  --hud-dim:rgba(239,230,207,.64);
+  --pad:#f0dc9c;
+  --pad-line:#9db3c6;
+  --ink:#2a2730;
+  --red:#c5463a;
+  --lamp:#ffcf8a;
+  --f-display:"ZCOOL QingKe HuangYou","PingFang SC","Microsoft YaHei",sans-serif;
+  --f-hand:"Long Cang","Kaiti SC","STKaiti","KaiTi",serif;
+  --f-num:"Caveat","Long Cang",cursive;
+  --f-body:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+  --f-pixel:"VT323",ui-monospace,Menlo,monospace;
+  color-scheme:dark;
+}
+[hidden]{display:none!important}
+html,body{height:100%;margin:0;background:var(--night);color:var(--hud);overflow:hidden;font-family:var(--f-body)}
+#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;outline:none;cursor:grab}
+#gl.dragging{cursor:grabbing}
+.ui{position:fixed;inset:0;pointer-events:none;display:flex;flex-direction:column;justify-content:space-between;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:calc(12px + env(safe-area-inset-top,0px)) calc(12px + env(safe-area-inset-bottom,0px))}
+.top,.bottom{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{font-family:var(--f-display);font-size:24px;letter-spacing:.06em;color:var(--hud);text-shadow:0 1px 0 rgba(0,0,0,.6);pointer-events:auto;cursor:pointer;background:none;border:0;padding:4px 0}
+.brand small{font-family:var(--f-pixel);font-size:16px;letter-spacing:.12em;color:var(--hud-dim);margin-left:8px}
+nav{display:flex;gap:4px;pointer-events:auto}
+nav button{font-family:var(--f-display);font-size:19px;letter-spacing:.12em;color:var(--hud-dim);background:transparent;border:0;border-radius:4px;padding:5px 11px;cursor:pointer;text-shadow:0 1px 0 rgba(0,0,0,.6)}
+nav button:hover{color:var(--hud)}
+nav button[aria-current="true"]{background:var(--hud);color:var(--ink);text-shadow:none}
+.chip{font-family:var(--f-body);font-size:12px;letter-spacing:.08em;border:1px solid rgba(239,230,207,.28);background:rgba(12,14,20,.55);border-radius:999px;padding:6px 12px;pointer-events:auto;color:var(--hud);cursor:pointer}
+.chip:hover{border-color:var(--hud)}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+button:focus-visible{outline:2px solid var(--lamp);outline-offset:2px}
+
+/* yellow legal pad */
+.note{position:fixed;z-index:3;top:64px;left:0;width:300px;height:400px;box-sizing:border-box;overflow:auto;overscroll-behavior:contain;color:var(--ink);background-color:transparent;scrollbar-width:thin;scrollbar-color:rgba(90,70,30,.35) transparent;
+  background-image:linear-gradient(to right,transparent 52px,var(--red) 52px,var(--red) 53.5px,transparent 53.5px,transparent 57px,var(--red) 57px,var(--red) 58px,transparent 58px),
+    repeating-linear-gradient(to bottom,transparent 0,transparent 33px,var(--pad-line) 33px,var(--pad-line) 34px);
+  background-attachment:local;background-clip:padding-box;background-origin:padding-box;
+  padding:0 22px 30px 72px;line-height:34px;font-size:15px;opacity:0;visibility:hidden;transition:opacity .32s,visibility 0s .32s;pointer-events:none}
+.note.open{opacity:1;visibility:visible;transition:opacity .32s;pointer-events:auto}
+.note.fly{visibility:visible;transition:none;pointer-events:none;transform-origin:0 0;will-change:transform,opacity}
+.note .head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;column-gap:10px}
+.note h2{font-family:var(--f-hand);font-weight:400;font-size:44px;line-height:68px;margin:0;color:#1d1b22;text-wrap:balance}
+.note h2.long{font-size:40px}
+.note h2 small{font-family:var(--f-num);font-size:20px;color:#3a3540;margin-left:12px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.note .now{font-family:var(--f-hand);font-size:20px;color:#3a3540;white-space:nowrap}
+.note h3{font-family:var(--f-hand);font-weight:400;font-size:28px;line-height:34px;margin:0;color:var(--red)}
+.note .feature{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.note .feature b{font-family:var(--f-hand);font-weight:400;font-size:40px;line-height:68px}
+.note .feature b.sm{font-size:29px;line-height:34px;padding:17px 0}
+.note .feature time{white-space:nowrap}
+.note .feature time,.note li time{font-family:var(--f-num);font-size:22px;color:#2a2730;font-variant-numeric:tabular-nums}
+.note p{margin:0 0 34px}
+.note .aside{color:#5b5560;font-size:14px}
+.note ol{list-style:none;margin:0 0 34px;padding:0}
+.note li{position:relative}
+.note li button{all:unset;cursor:pointer;display:grid;grid-template-columns:1fr auto;gap:8px;align-items:baseline;width:100%;font-family:var(--f-hand);font-size:24px;color:#1d1b22}
+.note li button:hover span{text-decoration:underline;text-decoration-color:var(--red);text-underline-offset:4px}
+.note li button:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+.note li .n{position:absolute;left:-46px;top:0;width:32px;text-align:center;font-family:var(--f-num);font-size:20px;color:#5b5560}
+.note li.cur .n{color:var(--red);border:2px solid var(--red);border-radius:50%;line-height:26px;top:3px}
+.note dl{margin:0 0 34px}
+.note dl div{display:grid;grid-template-columns:4em 1fr;gap:8px}
+.note dt{color:#5b5560}.note dd{margin:0;font-family:var(--f-hand);font-size:24px}
+.note .close{position:sticky;top:0;float:right;margin:-2px -8px 0 8px;font:12px var(--f-body);letter-spacing:.06em;color:var(--ink);background:var(--pad);border:1px solid #b8a46a;border-radius:999px;padding:4px 10px;cursor:pointer}
+
+/* caption for other objects */
+.cap{position:fixed;z-index:3;left:max(16px,env(safe-area-inset-left,0px));bottom:calc(60px + env(safe-area-inset-bottom,0px));max-width:min(340px,calc(100% - 32px));
+  background:#f4eedb;color:var(--ink);padding:12px 16px 14px;border-radius:3px;box-shadow:0 14px 34px rgba(0,0,0,.5);transform:translateY(16px);opacity:0;transition:.35s;pointer-events:none}
+.cap.on{transform:none;opacity:1}
+.cap b{display:block;font-family:var(--f-hand);font-weight:400;font-size:26px;line-height:1.2;color:#23305e}
+.cap span{display:block;font-size:14px;line-height:1.7;margin-top:4px}
+
+.tip{position:fixed;z-index:4;pointer-events:none;background:#f4eedb;color:var(--ink);font-size:12px;letter-spacing:.06em;padding:4px 9px;border-radius:3px;box-shadow:0 6px 16px rgba(0,0,0,.4);opacity:0;transition:opacity .15s;white-space:nowrap}
+.tip.on{opacity:1}
+.hint{position:fixed;z-index:2;pointer-events:none;transform:translate(-50%,-100%);background:#f4eedb;color:#7a2622;font-size:13px;letter-spacing:.08em;padding:6px 12px;border-radius:999px;box-shadow:0 8px 22px rgba(0,0,0,.45);opacity:0;transition:opacity .5s;white-space:nowrap}
+.hint::after{content:"";position:absolute;left:50%;top:100%;margin-left:-6px;border:6px solid transparent;border-top-color:#f4eedb}
+.hint.on{opacity:1;animation:hintBob 2.4s ease-in-out infinite}
+@keyframes hintBob{0%,100%{margin-top:0}50%{margin-top:-6px}}
+@media (prefers-reduced-motion:reduce){.hint.on{animation:none}}
+.toast{position:fixed;z-index:5;left:50%;top:calc(76px + env(safe-area-inset-top,0px));transform:translate(-50%,-12px);opacity:0;transition:.35s;background:#141a2b;color:#ffe48a;font-family:var(--f-display);font-size:22px;letter-spacing:.1em;padding:10px 20px;border:2px solid #ffe48a;border-radius:4px;box-shadow:0 0 30px rgba(255,228,138,.35);pointer-events:none;max-width:calc(100% - 32px);text-align:center}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.pad{position:fixed;z-index:3;left:max(16px,env(safe-area-inset-left,0px));bottom:calc(60px + env(safe-area-inset-bottom,0px));display:flex;gap:18px;align-items:center;pointer-events:auto}
+.dpad{display:grid;grid-template-columns:repeat(3,40px);grid-template-rows:repeat(3,40px)}
+.pad button{background:rgba(239,230,207,.14);border:1px solid rgba(239,230,207,.35);color:var(--hud);font:16px var(--f-pixel);border-radius:6px;cursor:pointer;touch-action:manipulation}
+.pad button:active{background:rgba(239,230,207,.35)}
+.dpad [data-k=up]{grid-column:2;grid-row:1}.dpad [data-k=left]{grid-column:1;grid-row:2}.dpad [data-k=right]{grid-column:3;grid-row:2}.dpad [data-k=down]{grid-column:2;grid-row:3}
+.ab{display:flex;gap:10px}.ab button{width:46px;height:46px;border-radius:50%;font-size:20px}
+.cover{position:fixed;inset:0;z-index:6;display:grid;place-items:center;background:var(--night);color:var(--hud-dim);font:14px var(--f-body);letter-spacing:.2em;transition:opacity 1.2s}
+.cover.gone{opacity:0;pointer-events:none}
+.cover .bar{width:180px;height:2px;background:rgba(239,230,207,.15);margin-top:14px}.cover .bar i{display:block;height:100%;width:0;background:var(--lamp);transition:width .2s}
+.fail{max-width:28em;line-height:1.8;text-align:center;letter-spacing:.04em}
+/* reading view for articles: a typeset manuscript over the dimmed room */
+.reader{position:fixed;inset:0;z-index:7;display:flex;justify-content:center;background:rgba(6,7,10,.62);opacity:0;visibility:hidden;transition:opacity .3s,visibility 0s .3s;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:calc(20px + env(safe-area-inset-top,0px)) calc(20px + env(safe-area-inset-bottom,0px))}
+.reader.open{opacity:1;visibility:visible;transition:opacity .3s}
+.sheet{position:relative;width:min(720px,100%);height:100%;overflow:auto;overscroll-behavior:contain;background:#f6f1e4;color:#222026;border-radius:2px;box-shadow:0 30px 80px rgba(0,0,0,.6);
+  padding:44px clamp(20px,6vw,68px) 64px;font-family:"Noto Serif SC","Songti SC","STSong","SimSun",serif;transform:translateY(14px);transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+.reader.open .sheet{transform:none}
+.sheet .close{position:sticky;top:0;float:right;margin:-26px -36px 0 0;font:12px var(--f-body);letter-spacing:.06em;background:#f6f1e4;border:1px solid #cfc6ae;color:#3a3540;border-radius:999px;padding:5px 12px;cursor:pointer}
+.sheet .kicker{font:12px var(--f-body);letter-spacing:.16em;color:#8a7f6a;margin:0 0 18px}
+.sheet h1{font-weight:600;font-size:clamp(24px,3.4vw,32px);line-height:1.35;margin:0 0 14px;text-wrap:balance}
+.sheet .byline{font:13px/1.7 var(--f-body);color:#5b5560;margin:0 0 26px}
+.sheet .abs{border-left:3px solid #b9472f;padding:4px 0 4px 16px;margin:0 0 30px;font-size:14.5px;line-height:1.9;color:#3a3540}
+.sheet .abs b{font-family:var(--f-body);font-weight:500;font-size:12px;letter-spacing:.12em;color:#b9472f;margin-right:8px}
+.sheet h2{font-weight:600;font-size:19px;line-height:1.5;margin:34px 0 12px}
+.sheet p.t{font-size:16.5px;line-height:2;text-indent:2em;margin:0 0 14px;text-align:justify}
+.sheet sup{font-family:var(--f-body);font-size:10px;color:#b9472f;margin:0 1px}
+.sheet .notes{margin-top:36px;padding-top:16px;border-top:1px solid #d8cfb8;font:12.5px/1.8 var(--f-body);color:#5b5560}
+.sheet .notes ol{margin:8px 0 0;padding-left:2.2em}
+.sheet .epi{margin:0 0 30px;padding:2px 0 2px 16px;border-left:3px solid #b9472f;font-size:16px;line-height:1.9;color:#3a3540;font-style:italic}
+.sheet .sign{margin:26px 0 0;text-align:right;font-size:15px;color:#5b5560}
+.sheet .end{margin-top:30px;text-align:center;font:12px var(--f-pixel);letter-spacing:.3em;color:#a39880}
+.note .post{all:unset;display:block;cursor:pointer;margin:0 0 34px}
+.note .post b{display:block;font-family:var(--f-hand);font-weight:400;font-size:26px;line-height:34px;color:#1d1b22}
+.note .post:hover b{text-decoration:underline;text-decoration-color:var(--red);text-underline-offset:4px}
+.note .post:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+.note .post span{display:block;font-size:14.5px;line-height:34px;color:#5b5560;font-family:var(--f-serif,"Noto Serif SC",serif)}
+.note .post i{font-style:normal;font-size:12px;letter-spacing:.06em;color:var(--red);margin-left:10px;vertical-align:middle}
+@media (max-width:700px){
+  .brand small{display:none}
+  nav button{font-size:17px;padding:4px 8px}
+  .pad{bottom:calc(58% + 64px + env(safe-area-inset-bottom,0px))}
+}
+@media (prefers-reduced-motion:reduce){.note,.toast,.cover,.cap{transition:none}}
+</style>
+</head>
+<body>
+
+<canvas id="gl" tabindex="0" aria-label="科技爱好者的书房三维场景：拖动可以环顾，滚轮或双指可以放大，点物件会拉近"></canvas>
+<div class="ui">
+  <div class="top">
+    <button class="brand" id="brand" type="button">Jimmy 的书屋<small>HOMEPAGE</small></button>
+    <nav aria-label="栏目">
+      <button type="button" data-go="about">关于</button>
+      <button type="button" data-go="list">经历</button>
+      <button type="button" data-go="notes">手记</button>
+      <button type="button" data-go="contact">联系</button>
+    </nav>
+  </div>
+  <div class="bottom">
+    <div class="chips">
+      <button class="chip" type="button" id="lampBtn">台灯：开</button>
+      <button class="chip" type="button" id="soundBtn">声音：关</button>
+      <button class="chip" type="button" id="lookBtn">画面：录像带</button>
+      <button class="chip" type="button" id="backBtn" hidden>回到书桌前 · ESC</button>
+    </div>
+  </div>
+</div>
+<aside class="note" id="note" aria-live="polite" aria-hidden="true">
+  <button class="close" type="button" id="noteClose">放下 · ESC</button>
+  <div id="noteBody"></div>
+</aside>
+<div class="cap" id="cap" aria-live="polite"><b id="capT"></b><span id="capS"></span></div>
+<div class="pad" id="pad" hidden>
+  <div class="dpad">
+    <button type="button" data-k="up" aria-label="上">▲</button><button type="button" data-k="left" aria-label="左">◀</button>
+    <button type="button" data-k="right" aria-label="右">▶</button><button type="button" data-k="down" aria-label="下">▼</button>
+  </div>
+  <div class="ab"><button type="button" data-k="b">B</button><button type="button" data-k="a">A</button></div>
+</div>
+<div class="reader" id="reader" aria-hidden="true"><article class="sheet" id="sheet" tabindex="-1"></article></div>
+<div class="tip" id="tip"></div>
+<div class="hint" id="hint" aria-hidden="true">抽一本书看看</div>
+<div class="toast" id="toast"></div>
+<div class="cover" id="cover"><div style="text-align:center"><div>正在开灯……</div><div class="bar"><i id="coverBar"></i></div></div></div>
+
+<script src="assets/js/three.min.js"></script>
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const cover=$('cover'),coverBar=$('coverBar');
+function fail(msg){cover.innerHTML='<div class="fail">'+msg+'</div>';}
+const T=window.THREE;if(!T){fail('三维库没有加载成功，刷新一下试试。');return;}
+const canvas=$('gl');
+let crtMat=null,cityTex=null,cityMesh=null;let renderer;try{renderer=new T.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});}catch(e){fail('这台设备的浏览器不支持 WebGL，书屋暂时打不开。');return;}
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+renderer.outputEncoding=T.LinearEncoding;renderer.toneMapping=T.NoToneMapping;renderer.autoClear=false;renderer.setClearColor('#07080c',1);
+const scene=new T.Scene();   // background comes from the clear colour (a Color background would force-clear the second pass)
+const camera=new T.PerspectiveCamera(41,1,.01,60);
+const clock=new T.Clock();
+const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches||location.search.indexOf('instant')>=0;
+const ANI=Math.min(8,renderer.capabilities.getMaxAnisotropy());
+const V3=(x,y,z)=>new T.Vector3(x,y,z);
+const ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+const sstep=(a,b,x)=>{const t=Math.min(1,Math.max(0,(x-a)/(b-a)));return t*t*(3-2*t);};
+
+/* ================= shading: baked irradiance × albedo, AgX ================= */
+const U={lamp:{value:1},exposure:{value:1.2},time:{value:0}};
+const VERT=`attribute vec2 uvB;attribute vec2 uvL;varying vec2 vB;varying vec2 vL;varying vec3 vP;varying vec3 vW;
+void main(){vB=uvB;vL=uvL;vP=position;vW=(modelMatrix*vec4(position,1.)).xyz;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`;
+const COMMON=`vec3 lin(vec3 c){return pow(c,vec3(2.2));}
+vec3 agxC(vec3 x){vec3 x2=x*x;vec3 x4=x2*x2;return 15.5*x4*x2-40.14*x4*x+31.96*x4-6.868*x2*x+.4298*x2+.1191*x-.00232;}
+vec3 agx(vec3 v){const mat3 m=mat3(.842479062253094,.0423282422610123,.0423756549057051,.0784335999999992,.878468636469772,.0784336,.0792237451477643,.0791661274605434,.879142973793104);
+  v=m*max(v,1e-10);v=clamp(log2(v),-12.47393,4.026069);v=(v+12.47393)/16.5;return agxC(v);}
+vec3 agxOut(vec3 v){const mat3 mi=mat3(1.19687900512017,-.0528968517574562,-.0529716355144438,-.0980208811401368,1.15190312990417,-.0980434501171241,-.0990297440797205,-.0989611768448433,1.15107367264116);
+  v=mi*v;return pow(max(v,0.),vec3(2.2));}
+vec3 finish(vec3 rad,float exposure){vec3 c=agxOut(agx(rad*exposure));c=pow(max(c,0.),vec3(1./2.2));float l=dot(c,vec3(.2126,.7152,.0722));c=pow(max(c,0.),vec3(1.18));return mix(vec3(l),c,1.08);}`;
+const FRAG=`precision highp float;varying vec2 vB;varying vec2 vL;varying vec3 vP;varying vec3 vW;uniform sampler2D gmask;uniform float crtOff;uniform float time;
+uniform sampler2D alb;uniform sampler2D irrA;uniform sampler2D irrB;uniform sampler2D tex;
+uniform float lamp;uniform float exposure;uniform vec3 color;uniform float strength;uniform float free;
+${COMMON}
+void main(){
+  vec3 rad;vec3 F=vec3(.62,.54,.46)*mix(.28,1.,lamp);
+#if defined(BAKED) || defined(LABEL)
+  vec3 E=mix(lin(texture2D(irrB,vB).rgb),lin(texture2D(irrA,vB).rgb),lamp)*4.;
+  E=mix(E,F,min(free,1.));
+  #ifdef LABEL
+  vec3 a=lin(texture2D(tex,vL).rgb);
+  #ifdef GOLD
+  float gm=texture2D(gmask,vL).r;a=mix(a,vec3(.5,.33,.12),gm);
+  #endif
+  #else
+  vec3 a=lin(texture2D(alb,vB).rgb);
+  #endif
+  rad=a*E;
+  #ifdef GOLD
+  {vec3 N=normalize(cross(dFdx(vW),dFdy(vW)));vec3 V=normalize(cameraPosition-vW);if(dot(N,V)<0.)N=-N;
+   vec3 Lf=normalize(vec3(.2,2.55,2.2)-vW),Ll=normalize(vec3(.27,1.13,-.07)-vW);
+   float h1=max(dot(N,normalize(Lf+V)),0.),h2=max(dot(N,normalize(Ll+V)),0.);
+   float sp=pow(h1,30.)*2.2+pow(h1,6.)*.35+pow(h2,30.)*lamp*3.*step(0.,dot(N,Ll));
+   float sweep=pow(.5+.5*sin((V.x*2.6+V.y*1.7)*9.+vW.y*55.+vW.x*20.),6.);      // a glint that slides across the foil as you move
+   rad+=gm*vec3(1.,.7,.3)*(sp+sweep*.35*(.4+.6*lamp)+E*.15);}
+  #endif
+#elif defined(PAGE)
+  rad=lin(texture2D(tex,vL).rgb)*F;
+#elif defined(EMIT_TEX)
+  rad=lin(texture2D(tex,vL).rgb)*strength;
+  #ifdef CITY
+  {vec2 cu=(vL-.5)*vec2(2.,2.4)+.5;                             // the backdrop is enlarged so close-up views never see its edge
+   vec2 out2=max(-cu,cu-1.);float o=max(out2.x,out2.y);
+   rad=lin(texture2D(tex,cu).rgb)*strength;
+   rad=mix(rad,cu.y<0.?vec3(.004,.005,.006):vec3(.012,.022,.024),smoothstep(0.,.07,o));}
+  {float r=0.;                                                   // rain falling between us and the city, three depths
+   for(int i=0;i<3;i++){float sc=i==0?260.:i==1?150.:80.,sp=i==0?7.:i==1?5.:3.2;
+     vec2 p=vL*vec2(sc,sc*.16)*vec2(2.,2.4);p.x+=p.y*.35;p.y+=time*sp;vec2 id=floor(p),q=fract(p);
+     float h=fract(sin(dot(id,vec2(12.9898,78.233)))*43758.5453);float x=fract(h*7.13)*.8+.1;
+     r+=smoothstep(.07,.0,abs(q.x-x))*smoothstep(0.,.3,q.y)*smoothstep(1.,.55,q.y)*step(.5,h)*(i==0?.35:i==1?.5:.7);}
+   rad=rad*.92+vec3(.55,.7,.8)*r*.16+rad*r*.8;}
+  #endif
+  #ifdef CRT
+  {vec2 q=vL-.5;vec3 N=normalize(vec3(q.x*.55,q.y*.42,1.));vec3 V=normalize(cameraPosition-vW);vec3 R=reflect(-V,N);
+   float fres=.03+.45*pow(1.-max(dot(N,V),0.),3.);
+   vec3 Lf=normalize(vec3(.2,2.55,2.2)-vW);float g=max(dot(R,Lf),0.);
+   vec3 room=mix(vec3(.02,.016,.014),vec3(.09,.07,.055),smoothstep(-.3,.7,R.y))*mix(.6,1.,lamp);
+   float edge=smoothstep(.3,.5,max(abs(q.x),abs(q.y)));
+   float sheen=smoothstep(.16,.0,abs(q.x+q.y*.9+.12-V.x*.35))*smoothstep(.55,.15,length(q-vec2(-.12,.16)));   // the classic diagonal glint on curved glass
+   float warm=smoothstep(.28,.5,q.x)*smoothstep(.5,.1,abs(q.y))*lamp;                                            // a little lamp light on the right edge
+   vec3 refl=room*fres*1.6+vec3(1.,.9,.76)*(pow(g,10.)*.12+pow(g,70.)*1.1)*(.6+.4*lamp)+vec3(.85,.88,.9)*sheen*.07+vec3(1.,.7,.4)*warm*.05;
+   refl*=1.-edge*.55;
+   rad=rad*(1.-crtOff)+vec3(.006,.009,.009)*(1.-edge*.6)*crtOff+refl*(.7+crtOff*.9);}
+  #endif
+#elif defined(SOIL)
+  rad=lin(texture2D(tex,vP.xz*4.5).rgb)*strength*mix(.5,1.,lamp);    // planar-mapped soil tile, ~22 cm per repeat
+#else
+  rad=color*strength;
+#endif
+  vec3 col=finish(rad,exposure);
+#if defined(BAKED) || defined(LABEL)
+  col=mix(col,pow(a,vec3(1./2.2)),clamp(free-1.,0.,1.));
+#endif
+  gl_FragColor=vec4(col,1.);
+}`;
+function makeMat(defs,uni){return new T.ShaderMaterial({vertexShader:VERT,fragmentShader:FRAG,defines:defs,uniforms:Object.assign({lamp:U.lamp,exposure:U.exposure,time:U.time,free:{value:0},color:{value:V3(1,1,1)},strength:{value:1},alb:{value:null},irrA:{value:null},irrB:{value:null},tex:{value:null}},uni)});}
+
+/* ================= live canvases ================= */
+function canvasTex(w,h,nearest){const c=document.createElement('canvas');c.width=w;c.height=h;const t=new T.CanvasTexture(c);if(nearest){t.magFilter=T.NearestFilter;t.minFilter=T.LinearFilter;t.generateMipmaps=false;}else t.anisotropy=ANI;return{c,g:c.getContext('2d'),t};}
+const crt=canvasTex(800,600),hh=canvasTex(240,160,true),scope=canvasTex(320,240),pad=canvasTex(608,800);
+
+/* ================= content ================= */
+const BOOKS=[
+  {id:'b1',key:'about',t:'关于我',sub:'ABOUT',y:''},
+  {id:'b2',key:'hometown',t:'故乡',sub:'1996 — 2015',y:'1996—2015'},
+  {id:'b3',key:'tongji',t:'同济大学',sub:'2015 — 2019',y:'2015—2019'},
+  {id:'b4',key:'reporter',t:'记者',sub:'2019 — 2023',y:'2019—2023'},
+  {id:'b5',key:'hku',t:'香港大学',sub:'2023 — 2024',y:'2023—2024'},
+  {id:'b6',key:'now',t:'现在',sub:'SINCE 2024',y:'2024—'},
+  {id:'b7',key:'notes',t:'手记',sub:'NOTES',y:''},
+  {id:'b8',key:'contact',t:'联系',sub:'CONTACT',y:''}];
+const ARTICLES=[{"id": "p1", "title": "林语堂小说中的赤足意象分析", "author": "金浩文", "affil": "同济大学汉语言文学系三年级", "year": "2018", "meta": "文章编号 1003-6652（2018）08-0062-02", "abstract": "本文试图以林语堂小说中多次出现的“赤足”意象作为切入点，分析其所具有的三重内涵：对男性审美观的反叛、对现代文明的反思以及对人性自然美的热爱。由此我们可以更好地理解林语堂与他的小说。", "keywords": "林语堂；小说；赤足", "body": [{"h": "一、“赤足”意象解读"}, {"p": "“赤足”问题有其复杂性，需要综合社会背景、地理位置和宗教原因等多方面因素来考虑。长久以来，“赤足”意象在中国文学乃至文化中都处在一个边缘的位置，在文学中极少能找到关于“赤足”的描写，而“赤足者”在社会绝大部分场合中更被认为是贫穷和无道德的体现。中国人在出入重要场合或私宅时一定要换穿拖鞋或戴上鞋套以示尊重。而林语堂本人则是一个“另类”，他在清华任教时，就喜欢穿着袜子在办公室的地毯上行走，并视之为生活中最奢侈的享受之一。他说：“我以为人的双脚，即因为上帝为了叫人行走而创造了它们，所以是完美的。对它们，不能再有什么改良，而穿鞋是人类退化的一种表现。”<sup>1</sup>可以说，“赤足”是林语堂本人的一种情结。二十世纪的美国作家托马斯·沃尔夫在以弥尔顿的诗句为题的《天使，望故乡》一书中写道：“天使脚趾跷起，因为他生来就是如此。”<sup>2</sup>赤足，在林语堂的小说中，具有丰富的文学内涵。"}, {"h": "（一）对男性审美观的反叛"}, {"p": "“赤足”在中国文学中备受冷落，与之形成对比的是，中国古代文学中关于女子“缠足”的描写则是极尽繁复，诗人、词人们不厌其烦地在诗歌中歌颂曼妙女子的“金莲”如何之美，不可方物，即使是苏轼也有一首《菩萨蛮》赞叹这三寸金莲：“涂香莫惜莲承步。长愁罗袜凌波去。只见舞回风。都无行处踪。偷穿宫样稳。并立双趺困。纤妙说应难。须从掌上看。”到了明清，这种习俗更是蔚然成风，成为一种时尚，满清统治者曾下禁令禁止汉人缠足，结果不仅没有成效，连旗人女子也纷纷以缠足为美了。林语堂曾不无痛恨的说“这妇女缠足制度是男人家的幻想中之最卑劣的癖性”<sup>3</sup>，女性在中国古代社会地位的低落，使得女性被迫逐渐沦为权利与金钱下的玩物，而“缠足”正是物化女性最显著的标志。林语堂在《吾国与吾民》中有一章谈“缠足的习俗”：“实际上缠足的性质始终为性的关系，它的起源无疑地出于荒淫君王的宫闱中…… 其所以能获得妇女的欢迎，则源于她们欲勾动男人的爱悦而已。”<sup>4</sup>妇女的缠足是痛苦的，毫无悲悯的痛苦，但为了缠足后享受不尽的荣光，无数中国女子心甘情愿地受此折磨。可以说，林语堂笔下的“赤足”与“缠足”构成一对对比鲜明的反义词。如果说，“缠足”背后隐喻的是“性”，是“中国人在性的理想上最高度的诡秘”<sup>5</sup>，那么“赤足”则代表着对这种曲意迎合男性审美趣味的反叛，这也是林语堂努力在书中塑造女性“赤足”意象的第一重目的。"}, {"p": "在《京华烟云》中，林语堂塑造了一位兼具中国传统儒家、道家思想又有着开放眼界的女性——姚木兰，这也是林语堂心目中理想女性的代表，他曾说：“若为女儿身，必为木兰也！”<sup>6</sup>，姚木兰虽然有着中国传统女性的温良、娴淑，却没有被中国传统社会的古板观念与对女性的偏见所束缚，在她身上，新旧交融，中西合璧，相得益彰。在一次与亲朋好友共同游览泰山时，经过一片小溪流，随行的男孩子纷纷脱下鞋袜，涉水而行，而一众女孩则在岸上徘徊，“红玉”、“桂姐”等皆是传统的中国女性，自然不肯在大众面前褪下鞋袜，露出玉足，更何况桂姐裹了脚，而木兰则“坐在大圆石上，大笑一声，脱下了鞋袜，露出了雪白的脚，那两只脚一向很少露在外面，现在轻轻泡入水中。”<sup>7</sup>随行的桂姐以为她疯了，桂姐虽然能够接受新鲜事物，却终归是以传统“妇道”的标准要求自己，因而无法像木兰一般洒脱自然，而木兰则说：“好舒服，好痛快。你若是不裹脚，我也就把你拉下来。”<sup>8</sup>木兰既是传统的继承者，也是“离经叛道”者，用“中庸”之道来形容她再合适不过。她的“赤足”在随行的诸位男性皆是赤足的背景下，就有了一种打破“特权”、宣告平等的意味。事实上，林语堂对男女平等的看法是有其独到见解的，他不是简单的将男女之间画上一个“等号”，而是采用了中国传统的“阴阳”图式来解释，阴阳是平等的，但不相等，他们之间是一种互相转化、互相补足，互相调和的关系，他说：“还是让女人珍惜其固有的性型，因为只有实现她们自身的性型，她们的庄重的使命才配称得起伟大。”<sup>9</sup>所以，木兰既能孝敬父母，夫妻之间相敬如宾，料理家庭琐事，也能同时保持着自己的独立思想与主张。木兰的赤足是对行将枯朽的旧社会的一次冲击，是不同于病态“玉足”的另一种美，自然，率真，使得男性不得不以尊重而不是“玩味”的态度去欣赏女性与生俱来的美，这也正是林语堂想要表现的第一重含义。"}, {"h": "（二）对现代文明的反思"}, {"p": "林语堂对中国“缠足”的批判，并不意味着他赞同西方的审美品位。事实上，中国有缠足，一八二四年前后的英国社会亦曾流行过女子束腰，古今中外，皆是如此。而林语堂在另一部小说中实验性地探索西方社会与世界的关系时，则探讨了“赤足”意象的另一重含义。在小说《奇岛》中，年轻的美国女科学家尤瑞黛因一次事故误入了一座处在太平洋之中的孤岛，如同中国版的“桃花源记”一般，来自于欧洲各国的居民对两次世界大战一无所知，他们主动切断了与外界的一切联系，在岛上重新建立起了自己的社会秩序、习俗与信仰。这既是“桃花源”，也是“乌托邦”，更是林语堂构建起的“理想国”。故事主要描写一个从现代摩登社会中成长起来的女性，被迫融入这座孤岛社会的过程中所产生的种种不适应、迷茫与思考。这是林语堂诸多小说中极为特殊的一部，不管是写作的题材较早涉及了文化乡愁的主题，还是其在小说中大胆地预设了“三战”爆发后的世界，更重要的是这部小说是他对柏拉图在《理想国》中提出的社会构想付诸实际，“赤足”亦是其中之一。来自摩登社会的尤瑞黛无论如何无法接受像岛中其他女孩一样赤足行走，她坚持穿高跟鞋，以此显示自己仍未与现代社会脱离。因而小说中作者特意安排了“苏格拉底”式的智者劳斯与她展开了一场论辩。林语堂用三个对应关系来说明尤瑞黛眼中对于赤足与否的认知：“鞋子——文明；凉鞋——半野蛮；赤足——野蛮”<sup>10</sup>。对于现代社会的人来讲，鞋子是文明的一种象征，一个符号，一个人会赤足，只有可能是他贫穷得买不起鞋，林语堂认为这是现代社会的一种“偏见”：“结果越多的鞋子就表示更高的文明和经济的繁荣…… 由一般赤脚的流行可证明印度、印度尼西亚、非洲，及其他一切未开化地区无可想象的贫困。”<sup>11</sup>在尤瑞黛的眼中，穿鞋子是居民由填饱肚子的挣扎走向经济盈余的指标。穿鞋与否，是物质富有与贫穷的区分，尤瑞黛以一个现代社会的眼光去衡量岛中居民的“赤足”，自然产生了“文明”的优越感。而劳斯则认为这是尤瑞黛长期受现代社会的固有思维影响，被束缚了自己的天性所致。在他看来，人类的双足是上帝高贵的杰作，是大自然完美的设计，可以用来应付各种的可能情况——平衡、优雅、舒适、易动性、易弯性和蒸发，他用“失调”和“复原”来形容无法理解“赤足”的现代人。《奇岛》中林语堂对于人的天然形体与“赤足”的种种论辩、思考，其核心在于试图对“文明”重新定义。文明的标准是什么？我们是否一直在进步，是否比一千年乃至两千年前的人类更“文明”呢？在现代社会我们习以为常的社会习俗、审美眼光、道德标准，实际上往往是经过了“偏见”的失真与扭曲。所以林语堂在这部小说中对“赤足”与敢于赤足的泰勒斯姑娘们的赞美，是他努力对人类自然天性的重新发掘。"}, {"h": "（三）对人性自然美的追求"}, {"p": "到了林语堂晚年创作的小说《赖柏英》中，他再一次提到了“赤足”意象，在这部小说中，“赤足”不再具有男性审美与现代文明的“反叛者”的身份，而是饱含了对故乡坂仔的自然山水、对童年、对初恋的怀念。这部小说带有自传性质，主人公“新洛”从小生长在福建坂仔的群山间，与青梅竹马的农家女孩赖柏英有过一段纯洁而热烈的爱情，但年轻的新洛被高山外面的世界所吸引，选择离开家乡去新加坡求学，而柏英一方面有瞎眼的祖父要照顾，另一方面也安于这方沃土，所以两人被迫分开。林晚年旅居香港，面对着香港“光秃秃”的山时常叹息，他在小说中借新洛之口说自己永远是山里的孩子，自己的人生观是“高地人生观”。在《八十自序》的第二章“童年”中，他说：“我之所以这样，都是仰赖于山。这也是人品的基调，我要享受我的自由，不愿别人干涉我。犹如一个山地人站在英国皇太子身旁而不认识他一样。他爱说话，就快人快语，没兴致时，就闭口不言。”<sup>12</sup>可见童年坂仔的生活对他来说是永恒的珍贵回忆，故而在这部小说中他用极深情、浪漫的笔触去描绘他心中的那片土地、那片高山与那个人。"}, {"p": "在新洛与秀瑛姑姑在新加坡重逢时，新洛兴奋的与她谈论起他童年时的柏英：“她习惯戴一朵红玫瑰或七里香在头发上的……我们小时候常在那儿玩一种游戏，岸上有很多蝴蝶和蜻蜓，她把一朵花别在头发上，然后悄悄地躲进树丛里，直到有蝴蝶落到她头上，她才慢慢地站起来，从树丛里走出来。游戏的趣味，就是看她能走多远，而不会把蝴蝶吓跑……”<sup>13</sup>面对陷入回忆中如此激动的新洛，秀瑛姑姑则微笑着提醒他回忆总是会欺骗性地只留下美好的那部分：“你们男人真是浪漫得无可救药。我想，在你心目中，她是一个头上栖着蝴蝶的少女。事实上，我倒时常看她头发上有着谷壳和稻屑，脚上还粘着泥巴。”而新洛则带着虔诚说：“我崇拜她脚上的泥巴……<sup>14</sup>整个新加坡还没有一个女孩子够资格吻她脚上的泥土呢！”<sup>15</sup>林语堂随后对这段话进行了解释：“你们圣经上有这么一句话，令我感动和赞同：‘她的脚在群山之间，是多么美丽！’而不是‘她畏惧上帝的双脚。’那就是指‘她的脚’。她一直打着光脚，直到十三四岁。”<sup>16</sup>在林语堂的描述中，“赤足”的赖柏英是高山中的精灵，她灵巧、优雅、平衡的女性姿态与坂仔这片秀山好水的滋养是分不开的，她的美是纯净、自然、与生俱来的，不带有现实社会的功利性，不带有挑逗的意味。林语堂本人有基督徒的背景，同时又有着异教徒的质疑精神，故他在小说中常常有对于《圣经》、宗教教义的再阐发。在这里他将“在群山之间”的脚与“畏惧上帝”的脚对比，所表达出的，是与简单“敬畏”上帝不同的另一种信仰方式，即强调人自身的“美”与“善”，这两者对林语堂而言是不相互违背的，因为彼时他已完成了从异教徒向基督徒的回归，但在根性上，他始终保持着一个异教徒的冷静与清醒。"}, {"h": "二、结语"}, {"p": "本文就“赤足”意象在林语堂小说中所起作用作了简要阐释。事实上，赤足这一意象在绘画、诗歌、宗教等诸多领域中都有体现，其不仅仅具有美学的内涵，同样可能具有更为深邃和丰富的含义，值得我们探讨。例如在西方中世纪宗教题材的绘画中，圣母、基督、希腊众神往往都是赤足的，这仿佛是神的“特权”。而在拉斐尔的《雅典学院》中，画面正中的苏格拉底，同样是长袍裹身，赤足而卧，思考人生宇宙。即使到了浪漫主义时期，法国画家德拉克罗瓦的《自由引导人民》中，画面正中高举象征自由、平等、博爱三色旗的自由女神，同样是赤足而立，而她身旁的工人、市民、孩子、学生，则皆整装待发，为革命献身。那么，“赤足”无疑又具有另一重含义。另一方面，佛教经文中同样有种种对于赤足的解读，《佛说处处经》中说：“佛不着履。有三因缘。一者使行者少欲。二者现足下轮。三者令人见之欢喜。”在拉萨、缅甸等佛教圣地，朝圣者皆从山脚开始赤足而行，一步一匍匐，用双脚丈量信仰的高度。如此看来，赤足具有相当长的历史和相当丰富的内涵。林语堂本人具有中西交融的复杂宗教背景，其人生也完成了从“异教徒到基督徒”的转变，或许因此他才会在文学作品中有意识地使用“赤足”这一意象。“赤足”背后更深层次的文化、宗教、哲学内涵，值得我们作进一步深入的研究与讨论。"}], "notes": ["林语堂.《从异教徒到基督徒》（谢绮霞等译）.湖南：湖南文艺出版社，2016 年，第23 页", "【美】托马斯·沃尔夫《天使，望故乡》（王建开等译）.上海：上海译文出版社，2009 年，第28 页", "林语堂.《吾国与吾民》.江苏：江苏人民出版社，2014 年，第123 页", "林语堂.《吾国与吾民》.江苏：江苏人民出版社，2014 年，第145 页", "林语堂.《吾国与吾民》.江苏：江苏人民出版社，2014 年，第146 页", "林如斯.《关于京华烟云》. 湖南：湖南文艺出版社，2014年，第2 页", "林语堂.《京华烟云》（张振玉译）.湖南.湖南文艺出版社，2014 年，第469 页", "林语堂.《京华烟云》（张振玉译）.湖南.湖南文艺出版社，2014 年，第469 页", "林语堂.《吾国与吾民》.江苏：江苏人民出版社，2014 年，第150 页", "林语堂.《奇岛》（张振玉译）.湖南：湖南文艺出版社，2017年，第154 页", "林语堂.《奇岛》（张振玉译）.湖南：湖南文艺出版社，2017年，第154 页", "林语堂.《从异教徒到基督徒》（谢绮霞等译）.湖南：湖南文艺出版社，2016 年，第227 页", "林语堂.《赖柏英》（谢青云译）.北京：群言出版社，2010年，第24 页", "林语堂.《赖柏英》（谢青云译）.北京：群言出版社，2010年，第25 页", "林语堂.《赖柏英》（谢青云译）.北京：群言出版社，2010年，第25 页", "林语堂.《赖柏英》（谢青云译）.北京：群言出版社，2010年，第25 页"], "type": "论文", "book": "tongji", "q": "用双脚丈量信仰的高度。"}, {"id": "p2", "title": "浅论《山本》中的“先知”形象", "author": "金浩文", "affil": "同济大学人文学院", "year": "", "meta": "", "abstract": "贾平凹的《山本》是一部记述他“秦岭之志”的小说，其背景之宏大、人物关系之复杂、叙事手法之成熟都值得我们深入地探究。本文旨在分析《山本》中一个的“先知”式人物——瞎子郎中陈先生的形象，解析其作用，试图探究作者的创作意图。可以看出，贾平凹《山本》中的先知，是剥离了西方宗教隐喻，带有中国儒道色彩的形象。", "keywords": "山本；形象学；先知", "body": [{"p": "贾平凹在《山本》中塑造了诸多复杂且鲜活的人物形象，可以说整个小说的故事就是在这群涡镇居民的互相作用、恩恩怨怨中展开。与此同时，书中还有一位特殊的人物——瞎子郎中陈先生，他具有着先知般的预言才能，却仿若游离于整个故事之外，游离于涡镇十年间的风云变幻、腥风血雨、龙争虎斗之中，却是在与涡镇居民的闲聊中，在看似平常的风轻云淡间，处处透露着哲学与玄机。《山本》是贾平凹的第十六部长篇小说，在写作技法上已经极为成熟，形成了贾平凹特有的风格，正如他在《山本》后记中所说：“在我磕磕绊绊这几十年写作途中，是曾承接过中国的古典，承接过苏俄的现实主义，承接过欧美的现代派和后现代派，承接过建国十七年的革命现实主义，好的是我并不单一…… 什么都吃过，但我还是中国种。”<sup>①</sup>因而要更好的理解《山本》中陈先生的先知形象与作用，我们需要从世界文学中的先知形象开始谈起。"}, {"h": "一、先知形象溯源"}, {"p": "中西文学中，皆有相当数量的作品中塑造了“先知”这一形象，例如古希腊悲剧《俄狄浦斯王》中为俄狄浦斯揭示其身份谜团的先知提瑞西阿斯(Tiresias)，又如中国古典小说中《红楼梦》中的警幻仙姑，巧借金陵十二钗图册和“红楼梦十二支曲”，完成对主要人物的命运预言，也交待了小说故事发展的基本走向。他们在功能上具有着共性，即都能预知未来，给人物指点迷津：“梦中的他，可能扮成巫师、医生、僧侣、老师、祖父、或其他任何有权威的人。每当主角面临绝境，除非靠睿智与机运无法脱困时，这位老人便出现。主角往往由于内在或外在的原因，力有未逮，智慧老人便会以人的化身来帮助他。”<sup>②</sup>但与此同时，中西文学中的先知又极具差异性。"}, {"p": "西方文化中，先知承载了深厚的文化内涵与宗教寓意，涉及到被召唤者、观察者、殉道者等角色。被召唤者的含义源自希伯来语“拉比”，意即先知是神任命的，承担起神与人之间中介者的角色。托利弗·伯曼在《希伯来与希腊思想比较》一书中这样定义“先知”：“先知，被神差遣传讲启示的人，其职分是向人民传达神的信息或代神发言。先知的职责不都是预言，最重要的是以神的旨意教导当代的人，使他们归向神。”由此可见，西方的“先知”，其本质属性是人——虽然具有着超人的属性，其中心职能是解读和传授神意，形成了与士师、君王、祭司完全不同的职责。可以说，西方先知的形象是与宗教密切相关的。"}, {"p": "而在中国文化中，从孔子时代开始，就否定了西方先知的中心职能，孔子说：“未知生，焉知死？”又云：“子不语怪力乱神。”孔子拒绝谈死亡以及一切超现实的事情，即反对宿命论，也就是从根本上否定了宗教存在的必要。故而中国传统小说中的先知，其自身往往即是神，或是仙女，或是菩萨，或是得道的高僧、道士等等。而他们揭示预言的方式，往往是通过偈语、“判词”等隐晦的途径，但他们往往并不在乎他们的预言是否能被受预言者理解，泄露天机只因为“机缘”巧合，而其后的一切，只看当局者的“造化”而已。而《山本》中的先知者形象，则在融合了中西小说的共性特征上，又有着自身的独特文学内涵。"}, {"h": "二、《山本》中的先知形象"}, {"p": "《山本》中的瞎子郎中陈先生，曾经当过道士，为了躲避兵役自戮双目，后来就一直在涡镇当郎中。这样的背景，与《红楼梦》中的警幻仙姑的仙人身份截然不同，他在小说中自始至终是一个“人”的形象，至少在这部充满“魔幻现实”与“山海经”色彩的小说中，我们没有看到他展现出超越人性的那一面。"}, {"p": "他具有着一般“先知”所共同具有的天赋，即能够预知未来。前一夜他刚提醒井掌柜“注意别让水淹”，后一天井掌柜即失足溺死在了厕所里。在小说的最后，井宗秀被暗杀，涡镇遭受了空前的灾难，百姓死伤惨重，陆菊人在恍惚中抬起头来，却发现“安仁堂的那几间平房却安然无恙，陈先生和剩剩，还有一个徒弟，就站在大门外的娑罗树下看着她。”<sup>③</sup>陈先生则表示这一切早在他的预料之中，只是他不愿改变，也无法改变这一现实，“陈先生说：今日初几了？陆菊人说：是初八。陈先生说：初八，初八，这一天到底还是来了。陆菊人说：你知道会有这一天吗？陆先生说：哎，说不得，也没法说。又一颗炮弹落在了拐角场子中，火光中，那座临时搭建的戏台子就散开了一地的木头。陆菊人说：这是有多少炮弹啊，全都打到涡镇，涡镇成一堆尘土了！陈先生说：一堆尘土也就是秦岭山的一堆尘土么。陆菊人看着陈先生，陈先生的身后，屋院之后，城墙之后，远处的山峰峦叠嶂，以尽着黛青。”<sup>④</sup>小说的结尾将视角从涡镇逐渐拉远，读者和陆菊人一样，直到此时才恍然大悟，原来我们以为重要的一切，涡镇几代人的恩怨情仇，建立起的所谓“功业”，对于秦岭来说，不过如一堆尘土一般，是过眼云烟罢了，秦岭各路诸侯的粉墨登场，如同一场轰轰烈烈的大戏，在苍莽秦岭山脉的壮阔背景下，以一种悲壮的方式结尾。"}, {"p": "《山本》中先知的预言，以一种极为浅显的语言来表述，看似平淡、直白，但倘若仔细品读，却又具有某种深刻的指代与隐喻。在小说的开头，他突然养起了蜜蜂，旁人不解，他说这是让人看的，蜜蜂四处采花酿蜜是在削减自己的“天毒”。“陈先生说：蜂有天毒，人也有天毒。人再问：人也有天毒？陈先生说：人不知道削减啊！”<sup>⑤</sup>重新审视这句话，发现整部小说的悲剧性结局已然尘埃落定，陈先生一语道出了涡镇最终失败的根本原因，就在不知道削减“天毒”上。这里的天毒也可以理解为是欲望，革命者的初心总是坚定而正义的，井宗秀最初选择投笔从戎，目的就是为了保护涡镇不受土匪五雷的侵扰，可随着故事的发展，他渐渐发生了改变，党同伐异，为了达到目标，可以不择手段。他一手建立了涡镇的防御工事，设立了完备的哨岗制度，可涡镇却比从前更加不太平，他与阮天保，皆是涡镇出生，可为了他们的个人恩怨，牵连了无数不相关的乡亲们，以恶报恶，终究是两败俱伤的结局。我们在小说中看到的一切人性的丑恶，自相残杀、好色、贪婪等等，归根结底就是欲望不断膨胀所致，而这，在小说的开端，陈先生已经洞察。"}, {"p": "又如一次他在给病人看病时说：“这镇上谁不是可怜人？到这世上一辈子挖抓着吃喝外，就是结婚生子，造几间房子，给父母送终，然后自己就死了，除了之外活着还有啥意思，有几个人追究过和理会过？…… 每个人好像都觉得自己重要，其实谁把你放在了秤上？你走过来就是风吹过一片树叶，你死了就如萝卜地里拔了一颗萝卜，别的萝卜又很快挤实了。一堆沙子掬在一起还是个沙堆，能见得风吗？能见得水吗？”<sup>⑥</sup>这里又隐喻了涡镇里的居民关系，说起来人人都是邻居，是同族，是亲朋好友，可是一旦谈到利益，谁又顾及得了谁呢，这种思想也就注定了井宗秀试图建立起一个坚不可摧的堡垒，从内部就是不可能实现的，这是人性决定的，正如陆菊人在大战来临前终于醒悟：“沙握起来是一把，手松开了沙从指缝里全流走，都气势汹汹，都贫薄脆弱，都自以为是，却啥也不是啊。”"}, {"p": "他本人很有意识地隐藏自己的预言天赋，这就具有中国传统道家“隐者”的特征，在陆菊人请他算卦时，他拒绝了：“人在这世上要了解自己的角色和现状，我是个看病的，又是瞎子，我这里不说别的，只说病。”在小说中十八次写他治病救人的过程中，唯有两次他只谈病，不谈其他，那就是给涡镇的“英雄”井宗秀看病时，他似乎是刻意保持着对井宗秀的距离，因为他知道，英雄的功业是从来建立在无数百姓的牺牲之上的，在所有乡亲们以为井宗秀是涡镇的“救世主”时，似乎只有他保持了相当客观冷静的看法。在陆菊人与他谈到她的困惑的一段谈话中，他即委婉地表达了这种观点：“陆菊人说：那你看着啥时候世道就安宁啊？陈先生说：啥时候没英雄就好了。陆菊人愣了起来，说：不要英雄？先生，那井宗丞是英雄吗？陈先生说：是英雄。陆菊人说：那井宗秀呢？陈先生说：那更是英雄呀。陆菊人就急了，说：怎么能不要英雄呢？镇上总得有人来主事，县上总得有人来主事，秦岭总得有人来主事啊！是英雄太多了，又都英雄得不大，如果英雄做大了，只有一个大英雄了，便太平了？陈先生说：或许吧。”陆菊人代表着中国百姓最善良的愿望，即渴求和平安定的生活，但盲目相信“英雄”来拯救自己，却是无法实现的“黄粱之梦”。"}, {"p": "但同时，他又兼具有着儒家传统的入世情怀，当涡镇旁的凤镇闹霍乱，他独身一人前往，归来时“瘦的皮包骨头，头发都花白”，但他怎样救治病人的，却决口不谈。当涡镇的居民发现有凤镇的人前来避难，都感到惊恐和憎恨，担心他们将传染病带给涡镇，只有陈先生力排众议，收留了这些可怜的人，并采取了及时的防治和隔离措施，使得瘟疫没有扩散，可以说陈先生身上具有着儒家的济世情怀。中国传统的儒道之争，在他的身上都有体现，既是矛盾，也是一种调和，这使得他的“先知”形象，比起西方与中国传统小说来得更为复杂。"}, {"p": "陈先生的预言都隐藏在他的这些日常的、看似不经心的闲言碎语中，可这却偏偏蕴藏了小说根本性的结局，他看似游离于小说的主线叙事之外，又不是以一种全知全能的“上帝”形象出现，而是类似中国传统的儒道哲学，在“出世”与“入世”之间徘徊，用老子与庄子的言说智慧，在巧妙的比喻之中将不可言说的天机教授于我们。"}, {"h": "三、结语"}, {"p": "《山本》中的先知形象，既是作者留给读者的思考空间，也是作者自身寻求安慰的来源。正如贾平凹在书的后记中所说：“作为历史的后人，我承认我的身上有着历史的荣光也有着历史的龌龊，这如同我的孩子的毛病都是我做父亲的毛病，我对于他人他事的认可或失望，也都是对自己的认可和失望。《山本》里没有包装，也没有面具，一只手表的背面故意暴露着那些转动着的齿轮，我写的不管是非功过，只是我知道了我骨子里的胆怯、慌张、恐惧、无奈和一颗脆弱的心。我需要书中的那个铜镜，需要那个瞎了眼的郎中陈先生，需要那个庙里的地藏菩萨。”<sup>⑦</sup>郎中陈先生这一先知形象，融合了中西小说中先知形象的诸多共性，同时也是贾平凹笔下独有的，具有秦岭风骨，融合中国传统儒、道思想的综合体，值得我们进一步探究。"}], "notes": ["贾平凹.《山本》，北京：中国作家出版社，2018：524.", "温儒敏.《中西比较文学论集》，北京：北京大学出版社，1988：114.", "贾平凹.《山本》，北京：作家出版社，2018：519.", "贾平凹.《山本》，北京：作家出版社，2018：519.", "贾平凹.《山本》，北京：作家出版社，2018：16.", "贾平凹.《山本》，北京：作家出版社，2018：49.", "贾平凹.《山本》，北京：作家出版社，2018：534."], "type": "论文", "book": "tongji", "q": "盲目相信‘英雄’来拯救自己，却是无法实现的‘黄粱之梦’。"}, {"id": "p4", "type": "书评", "title": "濯手惟闻涧水香", "author": "金浩文", "affil": "", "year": "2020", "meta": "", "draft": true, "lead": "回望整本书，既是一个人成长的过程，也是自我反思和自我觉醒的过程，作者在书中写道：“人生的根本价值，在于不可缺少的内在生活这一维度。促进生命的内在化，仍是人生最后阶段的重大使命。无论什么样的活法，缺了灵魂的觉醒和理想的追求这一条，都不可能有真正的成功和真正的幸福。”", "body": [{"p": "《一山放过一山拦》这本书读了两遍，第一遍看故事，第二遍。"}, {"p": "回望整本书，既是一个人成长的过程，也是自我反思和自我觉醒的过程，作者在书中写道：“人生的根本价值，在于不可缺少的内在生活这一维度。促进生命的内在化，仍是人生最后阶段的重大使命。无论什么样的活法，缺了灵魂的觉醒和理想的追求这一条，都不可能有真正的成功和真正的幸福。”"}, {"p": "“做党的人”这几个字在全书中始终不断地出现，伴随着人生起起落落的境遇，从未动摇。在被从培养名单中撤下来、在入党最后一刻被搁置、在文革结束后依然被“诬陷”的时刻，内心遭受的煎熬和委屈越深，对于党的信仰却反而更加坚定起来。这种坚定是逐渐摆脱了对某一个具体的人的信仰，转向了对一个集体在长期实践中所孕育出的智慧和精神的信仰和追求。借用托尔斯泰在《苦难的历程》中所说：“在清水里泡三次，在血水中浴三次，在碱水里煮三次，我们就会纯净得不能再纯净了。”"}, {"p": "书中所描绘的“文革”是由作者个人视角下结识、目睹的一个个具体的人和事构成的，可以说只是彼时中国大地上发生的诸多事件中的一个缩影。但即使从这一方缩影深入挖下去，依然可以看到它对身处其中的人所造成的不可磨灭的伤口，在一段“你方唱罢我登场”的近乎荒诞的现实中，今天站在道德高地趾高气扬教训他人的人，明天就可能作为被批斗的对象为人民所唾弃。这道伤口在今后的日子里，不断地复发、被重新撕裂开来，即使在十一届三中全会后全面拨乱反正，粉碎“四人帮”已经多年，但“四人帮”的余毒仍在横行。依然有些人“用着组织的名义，打着革命的旗号，整人、害人、糟蹋人”，归根结底还是没有意识到曾经的教训。思想的惯性一旦形成，便很难彻底根除，"}, {"p": "在这样的环境下，批判者和被批判者往往都处在一种生不由己的痛苦之中，曾长期担任复旦党委常委、宣传部长的徐震先生，在执行组织决定和个人思想的长期激烈矛盾中痛苦不已，使人尤为震惊的是他在文革前写的一大本检讨书中痛骂自己“丧失阶级立场”“政治退步”“个人主义恶性膨胀”“和党闹独立性”……使人感到无比的伤心和愤怒，对于一个文人来说，写下这些文字，是一种无可奈何下的自我放弃。这些文字不仅写在纸上，也会刻在心里，将会是每时每刻的煎熬。“做宣传部长，一定要准确宣传党的政策，千万不能跟风；一定要有自己的思想，千万不能盲从；一定要与人为善，千万不能整人。”短短三个“一定”，三个“千万”，是徐震先生一生工作的教训和总结，为此，他付出了极大的代价。"}, {"p": "作者通过展示自己一生的坎坷和亲历的事实告诉我们：“做党的人”是一件神圣而艰巨的事情，既需要保持着坚定的信仰、初心不动摇，“ 在不幸的个人遭遇中毫不动摇地走自己的旅途，完成一种使命”；又需要时刻保持独立而冷静的思考，不盲从，必须“全面、准确地理解马克思主义理论体系。把马克思的只言片语，甚至把早被他自己否定的东西，作为马克思主义大肆宣扬，这是极其不负责任的，是对马克思的亵渎，是对人民的犯罪。”"}, {"p": "人文学科的传承多是依靠着师生间的言传身教，相比于技术的直接传授，人文学科的道路更像是一种自我修行，个人的成长需要在日常一点一滴的积累中得到提升。相比于“技”，人文学科的教师传授的更多的是关于“道”的内容。宋代黄公度的《暮春山间》中有一句：“桃花落处无人见，濯手惟闻涧水香。”可以作为育人的隐喻：优秀的教育者带给人的是一种无需言表的教导，从为师者的一言一行，行事作风中就能够让身边的人得到有益的教导。这是人类精神的传承方式，"}, {"p": "也正因为有了邹秀珍、张佩琳、井继金、徐震、叶春华等领导、老师、朋友们的引导和帮助下，这种“尊重人、爱护人，把人当人看”的思想得到了传承，在89年风波发生后，作者作为当时的新闻系党委书记，能够在第一时间安抚学生情绪、教育出格学生的情况下，保护了一大批学生的人生和政治前途。因为家庭背景原因有过“切肤之痛”的作者，在对待后进的学生，对犯错的学生时，始终坚持着以下的准则：一、不能歧视，要尊重他们的人格；二、给他们改正的机会，立足帮助他们；三、处理要慎重，可处理可不处理的一律不作处理；四、只要错误改正了，就和其他学生一视同仁。"}, {"p": "正如作者在总结这场风波时写下：“当我们走进大学生的思想王国，不免惊诧地发现：这些娇子的精神世界不是什么‘象牙塔’般的平静、明晰、清纯。相反，充斥其间的是矛盾、困惑和被动。”"}, {"p": "如今三十年过去，大学生群体依然是中国最具有活力、最积极思考的一个群体，但他们的精神世界是否不再矛盾、不再困惑、不再被动？我们很难毫不犹豫地给出肯定的答案。"}, {"p": "在近年来越发激烈的“人才竞争”和疫情后的就业寒冬的双重背景下，整个社会和学生辅导工作者更应该给予这个年轻的群体更多的关心和了解。比如在笔者上大学期间，所读的一个人数较多的专业仍采用的是一个五六十人的班级配备一个班主任和一个副班主任的配置，班主任平时还要兼顾教学任务和科研任务，在这种情况下，辅导员与学生既不是“敌人”，也不是“朋友”，只是路人。很多学生四年毕业后与班主任说过的话只有寥寥数句。因此当看到二十年前的复旦大学新闻系的党委书记对本专业大部分学生的情况都了如指掌时，不由羡慕嗟叹。"}, {"p": "与前面部分注重感性回忆相比，建立“上海教育报刊总社”部分更为理性和细致，从一名带领数个独立分社整合为一体的决策者角度讲述，以具体案例为依托，以数据为支撑，侧重展现作出各个决策的前因后果。这一阶段的心情更像是“纵浪大化中，不喜亦不惧。”因为有了人生"}, {"p": "当时作出的很多关于总社媒体的判断，即使站在今天的角度看，依然具有很强的启发性："}, {"p": "例如：“要把发展发行经济放在优先地位。总社的主业是报刊的生产，我们是以优质的教育报刊服务社会，只有大力搞好发行，占领更大的报刊市场份额，我们才有地位，才有存在的必要，在任何情况下，都要千方百计把发行搞上去。”"}, {"p": "在新媒体大行其道的今天，传统媒体的质量依然要得到充分的重视，我们一切活动能够得到学生和家长认同的前提，是我们报纸的价值和影响力，倘若我们轻视了这一传统阵地，失去了在家长心中的地位，新媒体的发展和活动的举办也将成为无根之萍。"}, {"p": "过去我们组织的各项活动，基本以公益或者免费为主，因此在学生家长之中积累了良好的口碑，在当今线上授课、知识付费异常火热的浪潮中，我们要转变以活动带动纸媒销量的观念，而是要以少儿类报纸能够提供给孩子展示平台这一独特的“卖点”着手，建立一系列相应的活动和评价体系。这或许会成为少儿类媒体在下一阶段的发展方向。"}, {"p": "但是一旦如此做，便进入到了消耗传统纸媒口碑的阶段。我们实际上是以这些年纸质媒体在群众中积累的口碑作为筹码吸引家长前来。因此，除了活动本身的质量，对于纸媒，我们一方面要做更鲜活、更高质量的内容以提高我们的报纸在家长心中的价值和地位（这关系到家长是否愿意花费成本参与活动），完成“打造媒体价值”任务；另一方面则是要尽量增加个性化的展示版面，更好地完成服务“消费者”的任务。在报社现行人员配置保持不变的情况，很多员工都是身兼两职，想要做到新媒体和传统媒体双发力，是一件不小的挑战。"}], "notes": [], "book": "reporter", "q": "人文学科的道路更像是一种自我修行"}, {"id": "p3", "type": "随笔", "title": "行走在水上", "author": "金浩文", "affil": "", "year": "2024", "meta": "", "epi": "他们笑我在雨中行走，我说，我行走在水上。", "lead": "他们笑我在雨中行走，我说，我行走在水上。", "body": [{"p": "“天使望故乡”这个公众号做得很好，但凡还愿意读点长文的人都知道，这个无需多言。邱总的文风自成一格，字里行间看似嬉笑怒骂，却能让人感受得到他刻入骨子里的真诚。有时候，其他人在一本正经的怀念过去，邱总的文字却在实诚中透出点幽默和狡黠。所以有人说他是重庆的汪曾祺，我觉得不如说更像我熟悉的林语堂先生。说白了，就是不装。给公众号投稿的，在各自领域里都是能叫得出名字的人物，但我喜欢他们给自己的介绍，不做作，很简单，扔掉标签，回归构成一个人最基本的要素：家乡、家庭、职业。武侠小说里，只有武学大师才有资格使一树枝示人。刚习武的后生开始挥的也是木剑，同样取材于树，境界差了万重。所以说，执赢如虚是一重境界，执虚如赢又是另一重。我喜欢张若虚这个名字，若虚，听起来飘渺，无垠。"}, {"p": "高三有晨读，我从不读课文，而是读自己从杂志上剪贴、摘抄下来的文字。杰克·凯鲁亚特的《在路上》中的一段话，那时就已经刻在我的记忆深处了：“你的道路是什么——乖孩子的路，疯子的路，五彩的路，浪荡子的路，任何路。那是一条在任何地方、给任何人走的任何道路。到底在什么地方，给什么人，怎么走呢？”我在很多个晨读的时刻旁若无人地大声读了很多遍，连着其他的句子一起，有时读着读着，竟会生出一种哽咽的感觉。"}, {"p": "杰克·凯鲁亚特是人称美国“垮掉的一代”的代表人物。豆瓣上有网友解释得很有艺术性：二战结束后，“海明威捏着鱼钩和手稿回到海岸，菲茨杰拉德带着宿醉着奔走于疗养院，沃尔夫醒着做梦想要返回已不存在的家乡。”一代人的“美国梦”破碎了。那么，我们这一代人的梦，还完好着吗？以我的愚见，“天使望故乡”的主题就在每一篇文章里写着：在路上。再简单一点就是两个字：流浪。"}, {"p": "朋友问我这次从香港又搬回到上海的感受如何，我矫情地回道：“搬家使人顿生漂泊之感。”身体的归宿太容易寻找了，两平方的床就能装下，条件好点坏点，在哪儿都能入睡。但安顿心和灵魂，却是天大的难事。帕斯卡尔早就说过，人是会思考的苇草，身子看似随风飘荡，骨子里却渴求着扎根。但土壤枯萎了，就只能像蒲公英一样飘着，流浪，去远方。"}, {"p": "我欣赏“天使望故乡”的文章，但远远没到可以点评的程度。但从我有限的阅历和学识中，我能感受、揣摩邱总和他的朋友们试图表达的一些内涵："}, {"p": "一是忠实地记录“新冠”带给这个国家和老百姓的巨大伤痛。有人说，总有一天，这几年发生的种种事情，会像历史上发生过的所有事情一样，被某些有责任感的人拼凑还原出真相，永久地记录下来，成为民族历史或光彩或不光彩的一部分。但邱总已经先那些畏畏缩缩地作家们一步了。邱总经历了失去至亲、好友的伤痛，但他以尽可能克制的语气记录了一个个人，一件件事。我想，这些文字之所以没有被“风控”，一是因为语言的艺术，二是因为只有同样体会过伤痛的人，才能循着文字间淡淡的忧伤，勾起内心的更大波澜。这份感情，有些人，是感受不到的。"}, {"p": "二是真诚地袒露自己的人生信条和理想。邱总离开了新闻单位，但邱总没有放下记者的身份。喝酒喝得醉眼迷离的时候，脑子想的还是去复旦新闻系前的那一夜。文章的边边角角，藏着邱总未曾丢失的新闻理想。和一群没有理想的人一起做新闻，是一种痛苦，有理想的人不被需要，更是痛苦。不知道从什么时候起，一有社会事件，网友们就开始调侃媒体的不专业，说假话，连做新闻的人自己也认命似的自我解构，很像被人嘲笑的孔乙己。我没有在大的新闻平台待过，但给予我新闻理想的人，都是过去时代里最优秀的记者。之所以是过去，是因为他们大都已经被和谐社会“和谐”了。中文系上课的时候，我的导师给我们讲了关于“作者已死”的概念，意思是当一个作家完成作品的那一刻，作品就和他没有关系了。顺着这个思路，作家为人如何，是不是喜欢沾花惹草，似乎不应成为评价他文学作品价值的重要依据。但新闻不一样，记者虽然将自己从报道中隐去，但他的思想会有意无意地流露在报道中，所以当记者的首要之事，是做好一个人。邱总说他不知道是“正确还是错误地认为，我的员工大约首先必须是一个正常的个人、正派的个人。”我想，他当然知道。"}, {"p": "三是平静地诉说自己经历过的不公。邱总记录“90后”坐着轮椅的老邱的话，透着朴实的道理：遭到挫折，不要先抱怨命运，身居要职，不要忘了天下苍生。邱总的文章里常常从美国波士顿的人人事事讲起，但看到结尾，却似乎不经意地带出关于国内工作的前尘往事。我知道，邱总没忘记。但他把这些往事藏得很深，把它藏在文章的中间，在起承转合间悠悠地来上一句。这些话，别人听不听得懂，不重要，重要的是说出来，自己听得到。除了自己的，邱总也记录了很多底层人物的经历和遭遇，从波士顿到上海到重庆，从的士司机、快递小哥到装修师傅，这些长期被忽视的小人物身上有时折射出人性的光辉，有时折射出华袍下的虱子。"}, {"p": "四是深情地怀念家乡、亲友和过去的时代。有时在文章里能听到一声轻轻地叹息：这样的人，这样的时代，怎么就这么悄无声息地没了呢？他们曾经那么用力地活着，曾经那么热烈鲜艳地活着，如果这样的故事不值得被记住，那还有什么故事应该被记住呢？关于重庆，关于朋友，关于理想，邱总有着数不清的故事可讲，仿佛信手拈来，但又深情款款。关于重庆的A to Z，好像再来一个循环，也还能有很多故事可以讲。"}, {"p": "在香港读书的时候，听到身边大陆同学吃饭闲聊，大谈自由，鄙夷自己出生的环境，仿佛他们此刻已经是香港人了。等到有门课讲香港的媒体法律时，又一个个嫌弃法律太难，耽误他们赚钱出名的大好时光，我的心里很不屑，慢慢也就一个人吃饭了。有位广东的同学听说我读完还准备回去，轻蔑一笑说：“那你读书读了个寂寞。”我笑了笑，不知道怎么回他，就走了。又一次，一位香港本地的大学生在帮我当粤语翻译的路上，悄悄对我说：“其实我是一名共产党员。”我不知道他为什么突然要和我说这句话，但分别时，我们郑重地握了握手。"}, {"p": "离开香港时又到一年的黑雨季，雨下下停停，很是讨厌，谁知回到上海又是接连的大雨，雨势比香港的还要大，还要猛。我快步躲进一间小屋子里，看到屋里的人躺在各自的位置上，不关心外面是晴是雨。"}, {"p": "屋外还下着雨，我没有伞，但我推开了门。"}], "sign": "金浩文 2024年6月27日谨记", "notes": [], "book": "hku", "q": "屋外还下着雨，我没有伞，但我推开了门。"}];
+const BOOK_TEXT={
+  about:{lines:['你好，我是 Jimmy，','一个永远在路上的人。','','人生高光：全国人大新闻奖二等奖'],
+    html:`<p>你好，我是 Jimmy，一个永远在路上的人。</p>
+      <h3>人生高光</h3><div class="feature"><b class="sm">全国人大新闻奖二等奖</b><time>第31届</time></div>
+      <p>在《少年日报》当记者时拿的。要知道，那时我的读者大多还在为乘法口诀发愁，能让他们读完一篇讲人民代表大会的稿子，本身就值得一个奖。</p>
+      <p class="aside">其余的事，都写在书架上的另外几本书里。</p>`},
+  notes:{lines:['随手记下的东西，','和一串忘不掉的密码：','上上下下左右左右 BABA'],html:`<p>〔示例〕这里放随手记下的东西：读到的一句话、玩过的游戏、一张照片。</p><p class="aside">那串密码在这间屋子里也管用：在键盘上按方向键和 B、A 试试。</p>`},
+  contact:{lines:['邮箱　〔待填〕','微信　〔待填〕','GitHub　〔待填〕'],html:`<dl><div><dt>邮箱</dt><dd>〔待填〕</dd></div><div><dt>微信</dt><dd>〔待填〕</dd></div><div><dt>GitHub</dt><dd>〔待填〕</dd></div></dl>`},
+};
+['hometown','tongji','reporter','hku','now'].forEach(k=>{const list=ARTICLES.filter(a=>a.book===k);
+  BOOK_TEXT[k]={lines:list.length?list.flatMap((a,i)=>[(i?'':'')+'《'+a.title+'》','“'+a.q+'”','']).concat(['在右边的便笺本上点标题，读全文。']):['这一本还空着，','以后慢慢写进来。'],
+    html:list.length?list.map(a=>`<button type="button" class="post" data-article="${a.id}"><b>${a.title}${a.draft?'<i>未完稿</i>':''}</b><span>“${a.q}”</span></button>`).join('')+`<p class="aside">点标题读全文。</p>`
+      :`<p class="aside">这一本还空着，以后慢慢写进来。</p>`};});
+const CONTACT={t:'联系方式',lines:['邮箱　〔待填〕','微信　〔待填〕','GitHub　〔待填〕','','（插进去的是哪盘卡带都一样）']};
+const ITEMS={
+  pick_computer:['老电脑','133 MHz，32 MB 内存。从书桌中间抽一本书，它会在这块屏幕上打开。'],
+  pick_keyboard:['键盘','敲下去有很实在的“咔嗒”声。试试按方向键和 B、A。'],
+  pick_mouse:['滚球鼠标','底下有个小球，每隔一阵就得拆出来擦一擦。'],
+  pick_floppies:['3½ 英寸软盘','一张 1.44 MB，现在连一张照片都装不下。'],
+  pick_notepad:['便笺本','书架上每本书的目录。'],
+  pick_mug:['咖啡','还热着。'],
+  pick_lamp:['台灯','点一下开关。'],
+  pick_oscilloscope:['示波器','和旁边的收音机连在一起。点收音机，看看波形。'],
+  pick_radio:['收音机','点一下开始播放，再点一下关掉。'],
+  pick_camera:['胶片相机','36 张一卷，拍完冲出来才知道拍成什么样。'],
+  pick_headphones:['耳机','线有点长，常常缠在一起。'],
+  pick_crt_power:['电源','x'],pick_crt_home:['主页','x'],pick_crt_bw:['黑白','x'],
+  pick_headphones2:['头戴耳机','x'],pick_tablet:['平板','x'],pick_phone:['手机','x'],pick_player:['MP3 播放器','x'],
+  pick_mediaplayer:['媒体播放器','x'],pick_handheld2:['横版掌机','x'],pick_clamshell:['双屏掌机','x'],pick_cassette:['磁带随身听','x'],
+  pick_guitar:['古典吉他','x'],
+  pick_frame1:['相框','这里之后会放上照片。'],pick_frame2:['相框','这里之后会放上照片。'],pick_frame3:['相框','这里之后会放上照片。'],pick_frame4:['相框','这里之后会放上照片。'],
+  pick_robot:['机器人','书架上的小摆件，眼睛会亮。'],
+  pick_console:['游戏机','卡带都在右边的卡带架上。点一盘，它会插进游戏机。'],
+  pick_controller:['手柄','两个红键，两个橙色连发键。'],
+  pick_handheld:['掌机','里面装着贪吃蛇。'],
+};
+BOOKS.forEach(b=>ITEMS['book_'+b.id]=['书 · '+b.t,'']);
+const CARTS={gamecart_c1:'拳皇97',gamecart_c2:'星之卡比',gamecart_c3:'以撒的结合',gamecart_c4:'塞尔达传说'};
+Object.keys(CARTS).forEach(c=>ITEMS[c]=['卡带 · '+CARTS[c],'点一下插进游戏机，再点一下取出来。']);
+
+/* ================= loading ================= */
+const loader=new T.TextureLoader();let loaded=0,total=1;
+function prog(){loaded++;coverBar.style.width=Math.round(loaded/total*100)+'%';}
+function tex(url){return new Promise(res=>{loader.load(url,t=>{t.anisotropy=ANI;prog();res(t);},undefined,()=>{prog();res(null);});});}
+const monLed=[];const nodes={},picks=[],lampEmit=[],surfaces=[],allMeshes=[],movables=[];
+let markers={};
+const MOVABLE=n=>/^(book_|gamecart_|pick_notepad)/.test(n);
+async function load(){
+  const [meta,bin]=await Promise.all([fetch('assets/scene.json').then(r=>r.json()),
+    fetch('assets/scene.bin').then(r=>r.arrayBuffer())]);
+  markers=meta.markers||{};
+  const groups=[...new Set(meta.draws.filter(d=>d.kind==='baked'||d.kind==='label').map(d=>d.group))];
+  const images=[...new Set(meta.draws.filter(d=>d.image&&d.image!=='notepad.png').map(d=>d.image))];
+  total=groups.length*3+images.length+10;prog();
+  const atlas={};
+  await Promise.all(groups.map(async g=>{const[a,b,c]=await Promise.all([tex('assets/tex/alb_'+g+'.jpg'),tex('assets/tex/irr_on_'+g+'.jpg'),tex('assets/tex/irr_off_'+g+'.jpg')]);atlas[g]={alb:a,on:b,off:c};}));
+  const imgs={};await Promise.all(images.map(async n=>{imgs[n]=await tex('assets/tex/'+n.replace('.png','.jpg'));}));
+  imgs['notepad.png']=pad.t;
+  const gmasks={};await Promise.all(images.filter(n=>/^spine_b\d\.png$/.test(n)).map(async n=>{gmasks[n]=await tex('assets/tex/'+n.replace('.png','_g.jpg'));}));
+  const soilTex=await tex('assets/tex/soil.jpg');if(soilTex){soilTex.wrapS=soilTex.wrapT=T.RepeatWrapping;soilTex.needsUpdate=true;}
+  const root=new T.Group();scene.add(root);
+  meta.nodes.forEach(n=>{const g=new T.Group();g.position.fromArray(n.pos);g.quaternion.fromArray(n.quat);g.userData={name:n.name,home:g.position.clone(),homeQ:g.quaternion.clone(),free:{value:0}};nodes[n.name]=g;});
+  meta.nodes.forEach(n=>{(n.parent?nodes[n.parent]:root).add(nodes[n.name]);});
+  const topOf=name=>{let n=nodes[name];while(n&&n.parent&&n.parent!==root)n=n.parent;return n;};
+  const cache={};
+  meta.draws.forEach(d=>{
+    const geo=new T.BufferGeometry();
+    const f32=new Float32Array(bin,d.vOff,d.vCount*5),u16=new Uint16Array(bin,d.vOff,d.vCount*10);
+    const ib=new T.InterleavedBuffer(f32,5),iu=new T.InterleavedBuffer(u16,10);
+    geo.setAttribute('position',new T.InterleavedBufferAttribute(ib,3,0));
+    geo.setAttribute('uvB',new T.InterleavedBufferAttribute(iu,2,6,true));
+    geo.setAttribute('uvL',new T.InterleavedBufferAttribute(iu,2,8,true));
+    geo.setIndex(new T.BufferAttribute(new Uint32Array(bin,d.iOff,d.iCount),1));
+    geo.computeBoundingSphere();geo.computeBoundingBox();
+    const top=nodes[d.node]?topOf(d.node):null,mov=top&&MOVABLE(top.userData.name);
+    const freeU=mov?top.userData.free:{value:0};
+    const A=atlas[d.group]||{};const k=(mov?top.userData.name:'')+d.kind+d.group+(d.image||'');
+    let m;
+    if(d.kind==='baked')m=cache[k]||(cache[k]=makeMat({BAKED:1},{alb:{value:A.alb},irrA:{value:A.on},irrB:{value:A.off},free:freeU}));
+    else if(d.kind==='label'){const gold=/^spine_b\d/.test(d.image||'')&&gmasks[d.image];m=cache[k]||(cache[k]=makeMat(gold?{LABEL:1,GOLD:1}:{LABEL:1},{tex:{value:imgs[d.image]},irrA:{value:A.on},irrB:{value:A.off},free:freeU,gmask:{value:gold||null}}));}
+    else if(d.kind==='page')m=makeMat({PAGE:1},{tex:{value:imgs[d.image]}});
+    else if(d.kind==='crt')m=crtMat=makeMat({EMIT_TEX:1,CRT:1},{tex:{value:crt.t},strength:{value:2.0},crtOff:{value:0}});
+    else if(d.kind==='hh')m=makeMat({EMIT_TEX:1},{tex:{value:hh.t},strength:{value:1.5}});
+    else if(d.kind==='scope')m=makeMat({EMIT_TEX:1},{tex:{value:scope.t},strength:{value:2.2}});
+    else if(d.kind==='flat')m=makeMat({SOIL:1},{tex:{value:soilTex},strength:{value:.6}});   // potting soil: near-black, crumbly
+    else if(d.kind==='city'){m=makeMat({EMIT_TEX:1,CITY:1},{tex:{value:imgs[d.image]},strength:{value:1.05}});cityTex=imgs[d.image];if(cityTex){cityTex.wrapS=cityTex.wrapT=T.MirroredRepeatWrapping;cityTex.needsUpdate=true;}cityMesh=true;}
+    else{const c=d.color||[1,1,1];m=makeMat({EMIT_COLOR:1},{color:{value:V3(c[0],c[1],c[2])},strength:{value:(c[0]>.9&&c[1]>.85&&c[2]>.7)?4:3}});if(d.node==='pick_lamp')lampEmit.push(m);}
+    const mesh=new T.Mesh(geo,m);(nodes[d.node]||root).add(mesh);allMeshes.push(mesh);
+    if(cityMesh===true){cityMesh=mesh;mesh.scale.set(2,2.4,1);mesh.position.set(3.15*(1-2),2.2*(1-2.4),0);}
+    if(top){let pn=nodes[d.node];while(pn&&pn!==root&&!ITEMS[pn.userData.name])pn=pn.parent;mesh.userData.pick=(pn&&pn!==root?pn:top).userData.name;picks.push(mesh);}
+    if(d.node==='monled_1')monLed.push(m);
+    if(!mov&&d.kind!=='city')surfaces.push(mesh);
+  });
+  Object.values(nodes).forEach(n=>{if(n.parent===root&&MOVABLE(n.userData.name)){movables.push(n);n.userData.shadow=makeShadow();}});
+  buildSteam();
+}
+
+/* ================= blob shadows that follow moving things ================= */
+const SHVERT=`varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`;
+const SHFRAG=`varying vec2 vUv;uniform vec2 size;uniform vec2 inner;uniform float opacity;
+void main(){vec2 p=(vUv-.5)*size;vec2 q=abs(p)-inner*.5;float d=length(max(q,0.))+min(max(q.x,q.y),0.);float blur=(size.x-inner.x)*.5;
+float a=1.-smoothstep(-blur*.35,blur,d);gl_FragColor=vec4(0.,0.,0.,a*opacity);}`;
+const shadowGeo=new T.PlaneGeometry(1,1);shadowGeo.rotateX(-Math.PI/2);
+function makeShadow(){const m=new T.ShaderMaterial({vertexShader:SHVERT,fragmentShader:SHFRAG,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2,
+  uniforms:{size:{value:new T.Vector2(1,1)},inner:{value:new T.Vector2(1,1)},opacity:{value:.6}}});const s=new T.Mesh(shadowGeo,m);s.renderOrder=2;scene.add(s);return s;}
+const box3=new T.Box3(),rc=new T.Raycaster(),DOWN=V3(0,-1,0);
+function updateShadow(n,force){const s=n.userData.shadow;if(!s)return;if(!force&&!n.userData.moving&&s.userData.done)return;
+  box3.setFromObject(n);const c=box3.getCenter(V3());const sz=box3.getSize(V3());
+  rc.set(V3(c.x,box3.min.y+.004,c.z),DOWN);rc.far=1.2;const h=rc.intersectObjects(surfaces,false)[0];const sy=h?h.point.y:.754;
+  const lift=Math.max(0,box3.min.y-sy);const blur=.012+lift*.25;
+  s.position.set(c.x,sy+.0008,c.z);s.scale.set(sz.x+blur*2,1,sz.z+blur*2);
+  s.material.uniforms.size.value.set(sz.x+blur*2,sz.z+blur*2);s.material.uniforms.inner.value.set(sz.x,sz.z);
+  s.material.uniforms.opacity.value=(.55*(1-sstep(0,.28,lift)))*(.35+.65*U.lamp.value);s.userData.done=true;}
+
+/* ================= coffee steam ================= */
+const steams=[];
+function buildSteam(){const mug=nodes.pick_mug;if(!mug)return;
+  const frag=`varying vec2 vUv;uniform float time;uniform float seed;uniform float amt;
+  float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+  float n(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x),f.y);}
+  float fbm(vec2 p){float v=0.,a=.5;for(int i=0;i<5;i++){v+=a*n(p);p*=2.03;a*=.5;}return v;}
+  void main(){vec2 uv=vUv;float t=time*.22+seed;vec2 q=vec2(uv.x*1.4+.25*sin(uv.y*5.+time*.7+seed)*uv.y,uv.y*1.1-t);
+    float f=fbm(q*3.2+vec2(seed,0.));float w=smoothstep(0.,.32,uv.x)*smoothstep(1.,.68,uv.x);float v=smoothstep(0.,.12,uv.y)*smoothstep(1.,.3,uv.y);
+    float a=smoothstep(.48,.86,f)*w*v*amt;gl_FragColor=vec4(vec3(1.,.96,.9),a);}`;
+  const geo=new T.PlaneGeometry(.11,.26);geo.translate(0,.13,0);
+  for(let i=0;i<3;i++){const m=new T.ShaderMaterial({vertexShader:SHVERT,fragmentShader:frag,transparent:true,depthWrite:false,uniforms:{time:{value:0},seed:{value:i*3.7},amt:{value:.42}}});
+    const s=new T.Mesh(geo,m);s.position.set(mug.position.x+(i-1)*.006,mug.position.y+.078,mug.position.z+(i-1)*.004);s.renderOrder=3;scene.add(s);steams.push(s);}}
+
+/* ================= screens ================= */
+let current=null,contactOn=false,bootT0=.3,konami=false,crtOn=true,crtAnim=null;const pressed=new Set();
+const crtBuf=document.createElement('canvas');crtBuf.width=800;crtBuf.height=600;const crtBg=crtBuf.getContext('2d');
+function wrapText(g,text,x,y,maxW,lh){let line='';for(const ch of text){if(g.measureText(line+ch).width>maxW){g.fillText(line,x,y);line=ch;y+=lh;}else line+=ch;}g.fillText(line,x,y);return y+lh;}
+function drawCRT(t){const g0=crt.g,W=800,H=600;
+  const anim=crtAnim?(t-crtAnim.t0):9,offFull=!crtOn&&anim>.95;
+  if(crtMat)crtMat.uniforms.crtOff.value=crtOn?(anim<.4?1-anim/.4:0):Math.min(1,Math.max(0,(anim-.5)/.45));
+  if(offFull){g0.fillStyle='#000';g0.fillRect(0,0,W,H);crt.t.needsUpdate=true;return;}
+  if(crtOn&&anim<.4){const p=anim/.4;g0.fillStyle='#000';g0.fillRect(0,0,W,H);const sx=Math.min(1,p*2.2),sy=Math.max(.008,(p-.45)/.55);
+    g0.fillStyle='rgba(235,245,255,'+(1-.5*Math.max(0,p-.5))+')';g0.fillRect(W/2-W*sx/2,H/2-H*sy/2,W*sx,H*sy);crt.t.needsUpdate=true;return;}
+  drawScreen(t);
+  if(!crtOn){const p=anim;crtBg.clearRect(0,0,W,H);crtBg.drawImage(crt.c,0,0);g0.fillStyle='#000';g0.fillRect(0,0,W,H);
+    if(p<.3){const sy=Math.max(.008,1-Math.pow(p/.3,1.6));g0.drawImage(crtBuf,0,H/2-H*sy/2,W,H*sy);g0.fillStyle='rgba(255,255,255,'+(p/.3*.6)+')';g0.fillRect(0,H/2-H*sy/2,W,H*sy);}
+    else if(p<.5){const sx=Math.max(.012,1-(p-.3)/.2);g0.fillStyle='#f4f8ff';g0.fillRect(W/2-W*sx/2,H/2-3,W*sx,6);}
+    else{const a=Math.max(0,1-(p-.5)/.45);const gr=g0.createRadialGradient(W/2,H/2,0,W/2,H/2,26);gr.addColorStop(0,'rgba(255,255,255,'+a+')');gr.addColorStop(1,'rgba(255,255,255,0)');g0.fillStyle=gr;g0.fillRect(W/2-30,H/2-30,60,60);}
+    crt.t.needsUpdate=true;}}
+function drawScreen(t){const g=crt.g,W=800,H=600;g.save();g.fillStyle='#040706';g.fillRect(0,0,W,H);const bt=t-bootT0;
+  if(bt<2.6){g.fillStyle='#c7cfca';g.font='30px VT323, monospace';const mem=Math.min(32768,Math.floor(bt/1.2*32768));
+    ['SHUWU BIOS v3.00   (C) 2003','','CPU  : 133 MHz','Memory Test : '+mem+'K'+(bt>1.2?' OK':''),bt>1.5?'Floppy A: 1.44M':'',bt>1.9?'Starting ShuWu 98 ...':''].forEach((l,i)=>g.fillText(l,40,60+i*38));}
+  else{g.fillStyle='#246c68';g.fillRect(0,0,W,H-40);
+    [['书架','#e9c25a'],['手记','#f0f0f0'],['游戏','#5a5a60'],['回收站','#bebebe']].forEach(([lab,col],i)=>{const x=34,y=30+i*108;g.fillStyle=col;g.fillRect(x+4,y+8,48,42);g.strokeStyle='#141414';g.strokeRect(x+4,y+8,48,42);g.fillStyle='#fff';g.font='20px "Noto Sans SC",sans-serif';g.textAlign='center';g.fillText(lab,x+28,y+80);});
+    g.textAlign='left';const wx=170,wy=50,ww=580,wh=450;
+    g.fillStyle='#c8c4b8';g.fillRect(wx,wy,ww,wh);g.fillStyle='#fff';g.fillRect(wx,wy,ww,3);g.fillRect(wx,wy,3,wh);g.fillStyle='#646259';g.fillRect(wx,wy+wh-3,ww,3);g.fillRect(wx+ww-3,wy,3,wh);
+    const tg=g.createLinearGradient(wx,0,wx+ww,0);tg.addColorStop(0,contactOn?'#7a1f3d':'#16347f');tg.addColorStop(1,contactOn?'#c9577a':'#5b82c9');g.fillStyle=tg;g.fillRect(wx+5,wy+5,ww-10,32);
+    const b=current?BOOKS.find(x=>x.id===current):null;const c=contactOn?CONTACT:b?{t:b.t,sub:b.sub,lines:BOOK_TEXT[b.key].lines}:null;
+    g.fillStyle='#fff';g.font='20px "Noto Sans SC",sans-serif';g.fillText(contactOn?'卡带 — 联系方式.txt':c?('书架 — '+c.t+'.txt'):'欢迎 — Welcome.txt',wx+14,wy+28);
+    g.fillStyle='#fcfcf8';g.fillRect(wx+8,wy+46,ww-16,wh-54);
+    if(c){g.fillStyle=contactOn?'#7a1f3d':'#7a2622';g.font='bold 36px "Noto Sans SC",sans-serif';g.fillText(c.t,wx+30,wy+100);
+      if(c.sub){g.fillStyle='#6e6e6e';g.font='26px VT323, monospace';g.fillText(c.sub,wx+30,wy+134);}
+      g.fillStyle='#1e1e1e';g.font='22px "Noto Sans SC",sans-serif';let y=wy+(c.sub?186:160);c.lines.forEach(l=>{y=wrapText(g,l,wx+30,y,ww-70,36);});
+      if(Math.floor(t*2)%2)g.fillRect(wx+30,y-24,2,26);}
+    else{g.fillStyle='#7a2622';g.font='38px VT323, monospace';g.fillText('WELCOME TO',wx+34,wy+104);
+      g.fillStyle='#16347f';g.font='bold 54px Georgia,"Times New Roman",serif';g.fillText("Jimmy's Homepage",wx+32,wy+164);
+      g.fillStyle='#c9b98f';g.fillRect(wx+34,wy+188,ww-80,2);
+      g.fillStyle='#1e1e1e';g.font='27px "Noto Sans SC",sans-serif';g.fillText('你好，我是 Jimmy。',wx+34,wy+238);g.fillText('这是我的个人主页，也是我的书屋。',wx+34,wy+280);
+      g.fillStyle='#4a4a4a';g.font='24px "Noto Sans SC",sans-serif';g.fillText('桌上每一本书，是我人生的一段。',wx+34,wy+334);
+      const blink=Math.floor(t*1.6)%2;g.fillStyle='#7a2622';g.font='bold 26px "Noto Sans SC",sans-serif';g.fillText('抽一本出来看看',wx+34,wy+390);
+      const ax=wx+34+g.measureText('抽一本出来看看').width+16+(blink?6:0);g.font='bold 30px VT323, monospace';g.fillText('→',ax,wy+390);}
+    g.fillStyle='#c8c4b8';g.fillRect(0,H-40,W,40);g.fillStyle='#fff';g.fillRect(0,H-40,W,2);g.fillStyle='#e4e0d6';g.fillRect(6,H-34,98,28);g.fillStyle='#141414';g.font='bold 20px "Noto Sans SC",sans-serif';g.fillText('书屋',30,H-13);
+    const d=new Date();g.fillStyle='#bab6ac';g.fillRect(W-96,H-34,90,28);g.fillStyle='#141414';g.font='24px VT323, monospace';g.fillText(String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'),W-80,H-12);
+    if(konami){g.fillStyle='rgba(10,12,30,.88)';g.fillRect(120,200,560,150);g.strokeStyle='#ffe14d';g.lineWidth=4;g.strokeRect(120,200,560,150);g.fillStyle='#ffe14d';g.textAlign='center';g.font='52px "ZCOOL QingKe HuangYou",sans-serif';g.fillText('秘籍生效',W/2,268);g.font='32px VT323, monospace';g.fillText('30 LIVES',W/2,318);g.textAlign='left';}}
+  g.fillStyle='rgba(0,0,0,.22)';for(let y=0;y<H;y+=3)g.fillRect(0,y,W,1);
+  const ry=((t*55)%(H+120))-60;const rb=g.createLinearGradient(0,ry-40,0,ry+40);rb.addColorStop(0,'rgba(255,255,255,0)');rb.addColorStop(.5,'rgba(255,255,255,.05)');rb.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=rb;g.fillRect(0,ry-40,W,80);
+  {const per=13,bp=((t%per)/per)*(H+160)-80;const by=H-bp;          // VHS tracking band rolling up the screen
+   if(by>-40&&by<H+40){g.fillStyle='rgba(255,255,255,.07)';g.fillRect(0,by-18,W,36);
+     for(let y=by-18;y<by+18;y+=2){const n=3+Math.random()*7|0;for(let k=0;k<n;k++){const v=150+Math.random()*105|0;g.fillStyle='rgba('+v+','+v+','+v+','+(.25+Math.random()*.45)+')';g.fillRect(Math.random()*W,y,6+Math.random()*40,1.5);}}}}
+  const vg=g.createRadialGradient(W/2,H/2,H*.35,W/2,H/2,H*.85);vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,.5)');g.fillStyle=vg;g.fillRect(0,0,W,H);
+  g.restore();crt.t.needsUpdate=true;}
+
+/* the legal pad on the desk */
+let padInk=1;
+function setPadInk(v){v=Math.round(v*40)/40;if(v!==padInk){padInk=v;drawPad();}}
+function drawPad(){const g=pad.g,W=608,H=800;g.save();g.fillStyle='#efdc9a';g.fillRect(0,0,W,H);g.globalAlpha=padInk;if(padInk<=0){g.restore();pad.t.needsUpdate=true;return;}
+  g.strokeStyle='rgba(120,150,180,.55)';g.lineWidth=2;for(let y=120;y<H;y+=38){g.beginPath();g.moveTo(0,y);g.lineTo(W,y);g.stroke();}
+  g.strokeStyle='rgba(200,70,60,.8)';g.beginPath();g.moveTo(74,0);g.lineTo(74,H);g.moveTo(80,0);g.lineTo(80,H);g.stroke();
+  g.fillStyle='#1d1b22';g.font='64px "Long Cang",cursive';g.fillText('书架',96,96);
+  const cur=current?BOOKS.findIndex(b=>b.id===current):-1;
+  if(cur>=0){g.font='26px "Long Cang",cursive';g.fillStyle='#3a3540';g.textAlign='right';g.fillText('第 '+String(cur+1).padStart(2,'0')+' 本 · 正在读',W-24,90);g.textAlign='left';}
+  g.strokeStyle='rgba(197,70,58,.85)';g.lineWidth=3;g.beginPath();g.moveTo(96,108);g.lineTo(250,104);g.stroke();
+  BOOKS.forEach((b,i)=>{const y=190+i*76;g.fillStyle='#5b5560';g.font='34px Caveat, cursive';g.textAlign='center';g.fillText(String(i+1).padStart(2,'0'),40,y);
+    if(i===cur){g.strokeStyle='#c5463a';g.lineWidth=3;g.beginPath();g.ellipse(40,y-11,26,22,0,0,7);g.stroke();}
+    g.textAlign='left';g.fillStyle='#1d1b22';g.font='40px "Long Cang",cursive';g.fillText(b.t,96,y);
+    if(b.y){g.textAlign='right';g.font='34px Caveat, cursive';g.fillText(b.y,W-24,y);g.textAlign='left';}});
+  g.restore();pad.t.needsUpdate=true;}
+
+/* oscilloscope */
+let analyser=null,abuf=null;
+function drawScope(t){const g=scope.g,W=320,H=240;g.fillStyle='#04140b';g.fillRect(0,0,W,H);g.strokeStyle='rgba(60,160,90,.35)';g.lineWidth=1;
+  for(let x=0;x<=W;x+=40){g.beginPath();g.moveTo(x,0);g.lineTo(x,H);g.stroke();}for(let y=0;y<=H;y+=40){g.beginPath();g.moveTo(0,y);g.lineTo(W,y);g.stroke();}
+  g.strokeStyle='#8dffb0';g.lineWidth=3;g.shadowColor='#5dff8a';g.shadowBlur=10;g.beginPath();
+  if(analyser&&radioOn){analyser.getFloatTimeDomainData(abuf);for(let i=0;i<W;i++){const v=abuf[Math.floor(i/W*abuf.length)]||0;const y=H/2-v*H*1.6;i?g.lineTo(i,y):g.moveTo(i,y);}}
+  else{for(let i=0;i<W;i++){const y=H/2+Math.sin(i*.09+t*2)*3+(Math.random()-.5)*1.5;i?g.lineTo(i,y):g.moveTo(i,y);}}
+  g.stroke();g.shadowBlur=0;scope.t.needsUpdate=true;}
+
+/* snake */
+const S={cols:24,rows:14,body:[],dir:{x:1,y:0},nd:{x:1,y:0},food:{x:4,y:4},state:'title',score:0,lives:3,acc:0};
+function placeFood(){let f;do{f={x:(Math.random()*S.cols)|0,y:(Math.random()*S.rows)|0};}while(S.body.some(b=>b.x===f.x&&b.y===f.y));S.food=f;}
+function snakeReset(){S.body=[{x:8,y:7},{x:7,y:7},{x:6,y:7}];S.dir={x:1,y:0};S.nd={x:1,y:0};S.score=0;S.lives=konami?30:3;placeFood();S.state='play';}
+function snakeStep(){S.dir=S.nd;const h={x:(S.body[0].x+S.dir.x+S.cols)%S.cols,y:(S.body[0].y+S.dir.y+S.rows)%S.rows};
+  if(S.body.some(b=>b.x===h.x&&b.y===h.y)){S.lives--;beep(110,.25);if(S.lives<=0)S.state='over';else S.body=S.body.slice(0,3);return;}
+  S.body.unshift(h);if(h.x===S.food.x&&h.y===S.food.y){S.score+=10;beep(880,.06);placeFood();}else S.body.pop();}
+function snakeInput(k){if(S.state!=='play'){if(['up','down','left','right','a'].includes(k))snakeReset();return;}
+  const m={up:[0,-1],down:[0,1],left:[-1,0],right:[1,0]}[k];if(!m)return;if(m[0]===-S.dir.x&&m[1]===-S.dir.y)return;S.nd={x:m[0],y:m[1]};}
+function drawHH(t){const g=hh.g,W=240,H=160;g.save();g.imageSmoothingEnabled=false;g.fillStyle='#d6e6be';g.fillRect(0,0,W,H);const ink='#283a28',mid='#78916a';
+  if(S.state==='title'){g.fillStyle=ink;g.font='36px "ZCOOL QingKe HuangYou",sans-serif';g.textAlign='center';g.fillText('贪吃蛇',W/2,66);
+    for(let i=0;i<10;i++){const x=40+((t*40+i*10)%160),y=96+Math.round(Math.sin(t*3+i*.6)*4);g.fillStyle=i===0?ink:mid;g.fillRect(x,y,8,8);}
+    if(Math.floor(t*2)%2){g.font='15px "Noto Sans SC",sans-serif';g.fillText('按方向键开始',W/2,140);}}
+  else{g.fillStyle=ink;g.fillRect(0,0,W,20);g.fillStyle='#d6e6be';g.font='18px VT323, monospace';g.textAlign='left';g.fillText('SCORE '+String(S.score).padStart(4,'0'),6,15);g.textAlign='right';g.fillText('LIFE x'+S.lives,W-6,15);
+    g.fillStyle=mid;g.fillRect(S.food.x*10+2,20+S.food.y*10+2,6,6);S.body.forEach((b,i)=>{g.fillStyle=i?mid:ink;g.fillRect(b.x*10+1,20+b.y*10+1,8,8);});
+    if(S.state==='over'){g.fillStyle='rgba(214,230,190,.88)';g.fillRect(30,52,180,64);g.fillStyle=ink;g.font='30px "ZCOOL QingKe HuangYou",sans-serif';g.textAlign='center';g.fillText('游戏结束',W/2,88);g.font='14px "Noto Sans SC",sans-serif';g.fillText('按方向键再来一局',W/2,108);}}
+  g.restore();hh.t.needsUpdate=true;}
+
+/* ================= sound ================= */
+let soundOn=false,ac=null,radioOn=false,radioNodes=[];
+function audio(){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();return ac;}catch(e){return null;}}
+function beep(f,d,delay){if(!soundOn)return;const a=audio();if(!a)return;const o=a.createOscillator(),gn=a.createGain();o.type='square';o.frequency.value=f;const t0=a.currentTime+(delay||0);gn.gain.setValueAtTime(.035,t0);gn.gain.exponentialRampToValueAtTime(.0001,t0+d);o.connect(gn).connect(a.destination);o.start(t0);o.stop(t0+d+.02);}
+/* placeholder tune for the radio: a short warm lo-fi loop (swap for a real recording later) */
+function startRadio(){const a=audio();if(!a)return;stopRadio();radioOn=true;
+  const out=a.createGain();out.gain.value=.0001;out.gain.exponentialRampToValueAtTime(.32,a.currentTime+.6);
+  const lp=a.createBiquadFilter();lp.type='lowpass';lp.frequency.value=2200;
+  analyser=a.createAnalyser();analyser.fftSize=1024;abuf=new Float32Array(analyser.fftSize);
+  lp.connect(out);out.connect(analyser);analyser.connect(a.destination);radioNodes=[out,lp];
+  const t0=a.currentTime+.05;
+  const nb=a.createBuffer(1,a.sampleRate*.7,a.sampleRate),nd=nb.getChannelData(0);for(let i=0;i<nd.length;i++)nd[i]=(Math.random()*2-1)*(1-i/nd.length);
+  const ns=a.createBufferSource();ns.buffer=nb;const bp=a.createBiquadFilter();bp.type='bandpass';bp.frequency.value=1800;const ng=a.createGain();ng.gain.value=.5;ns.connect(bp).connect(ng).connect(lp);ns.start(t0);
+  const chords=[[57,60,64,67],[53,57,60,64],[48,52,55,59],[55,59,62,65]],mel=[76,74,72,69,72,74,76,79,76,74,72,74,69,67,69,72];
+  const hz=m=>440*Math.pow(2,(m-69)/12),beat=.75;let tt=t0+.6;
+  for(let rep=0;rep<2;rep++)chords.forEach((ch,ci)=>{ch.forEach(n=>{const o=a.createOscillator(),g=a.createGain();o.type='triangle';o.frequency.value=hz(n);o.detune.value=(Math.random()-.5)*12;
+      g.gain.setValueAtTime(0,tt);g.gain.linearRampToValueAtTime(.05,tt+.25);g.gain.setValueAtTime(.05,tt+beat*4-.3);g.gain.linearRampToValueAtTime(0,tt+beat*4);o.connect(g).connect(lp);o.start(tt);o.stop(tt+beat*4+.05);radioNodes.push(o);});
+    const bo=a.createOscillator(),bg=a.createGain();bo.type='sine';bo.frequency.value=hz(ch[0]-12);bg.gain.setValueAtTime(0,tt);bg.gain.linearRampToValueAtTime(.12,tt+.05);bg.gain.exponentialRampToValueAtTime(.001,tt+beat*2);bo.connect(bg).connect(lp);bo.start(tt);bo.stop(tt+beat*2+.05);radioNodes.push(bo);
+    for(let k=0;k<4;k++){const m=mel[(ci*4+k)%mel.length];const st=tt+k*beat;const o=a.createOscillator(),g=a.createGain();o.type='sine';o.frequency.value=hz(m);g.gain.setValueAtTime(0,st);g.gain.linearRampToValueAtTime(.07,st+.04);g.gain.exponentialRampToValueAtTime(.001,st+beat*.95);o.connect(g).connect(lp);o.start(st);o.stop(st+beat);radioNodes.push(o);}
+    tt+=beat*4;});
+  radioEnd=tt;}
+let radioEnd=0;
+function stopRadio(){radioNodes.forEach(n=>{try{n.stop&&n.stop();}catch(e){}try{n.disconnect();}catch(e){}});radioNodes=[];radioOn=false;}
+
+/* ================= camera: views, focus, orbit + zoom ================= */
+const V=(p,l)=>({pos:V3(...p),look:V3(...l)});
+const VIEWS={
+  home:()=>V([.08,1.3,1.42],[.04,.99,-.18]),
+  intro:()=>V([-.27,1.19,1.0],[-.26,.97,-.08]),
+  read:()=>V([-.15,1.44,1.16],[-.17,.86,.08]),
+  screen:()=>V([-.46,1.13,.66],[-.52,1.06,.0]),
+  notepad:()=>V([.07,1.13,.55],[.06,.76,.13]),
+  game:()=>V([.7,.99,.45],[.75,.8,.16]),
+};
+let view='home',viewKey='home',tw=null;
+const camPos=V3(.08,1.55,2.6),camLook=V3(.04,.99,-.18);
+const orbit={yaw:0,pitch:0,zoom:1,yawT:0,pitchT:0,zoomT:1,shift:V3(),shiftT:V3()};
+const par=new T.Vector2(),parT=new T.Vector2();let off={x:0,y:0},offT={x:0,y:0};
+function aspectK(){return camera.aspect<1?1.6:camera.aspect<1.3?1.2:1;}
+function fit(v){const k=aspectK();if(k!==1)v.pos=v.look.clone().add(v.pos.clone().sub(v.look).multiplyScalar(k));return v;}
+function focusView(name){const n=nodes[name];box3.setFromObject(n);const c=box3.getCenter(V3());const r=box3.getSize(V3()).length()/2;
+  const home=VIEWS.home().pos;const dir=V3((home.x-c.x)*.35,c.y>1.?.12:.85,1).normalize();   // desk things from above-front, wall things face-on
+  const vf=camera.fov*Math.PI/180;const dist=Math.min(.95,Math.max(.34,r/Math.tan(vf/2)*1.3+.08));return{pos:c.clone().addScaledVector(dir,dist),look:c};}
+function zMax(){const h=fit(VIEWS.home());const hd=h.pos.distanceTo(h.look)*1.05;const d=(tw?tw.p1.distanceTo(tw.l1):camPos.distanceTo(camLook))||hd;return Math.max(1,hd/d);}
+function moveTo(v,dur){v=fit(v);tw={p0:camPos.clone(),l0:camLook.clone(),p1:v.pos,l1:v.look,t:0,d:reduce?.01:(dur||1.15)};orbit.yawT=orbit.pitchT=0;orbit.zoomT=1;orbit.shiftT.set(0,0,0);}
+
+/* ================= panels ================= */
+const note=$('note'),cap=$('cap');let capTimer=0;
+function showCap(){}   // object captions are switched off: the room speaks for itself
+function hideCap(){cap.classList.remove('on');}
+function bookList(cur){return `<h3>书</h3><ol>${BOOKS.map((b,i)=>`<li class="${b.id===cur?'cur':''}"><span class="n">${String(i+1).padStart(2,'0')}</span><button type="button" data-book="${b.id}"><span>${b.t}</span><time>${b.y}</time></button></li>`).join('')}</ol>`;}
+function openPad(kind){let h='';
+  if(kind==='list'){h=`<div class="head"><h2>书架</h2></div><p class="aside">每本书都能从书桌中间抽出来，内容会在老电脑上打开。</p>${bookList(current)}`;}
+  else if(kind==='contact'){h=`<div class="head"><h2>联系方式</h2><span class="now">卡带 · 已插入</span></div>${BOOK_TEXT.contact.html}<p class="aside">换一盘卡带，显示的内容一样。</p>`;}
+  else{const b=BOOKS.find(x=>x.id===kind),i=BOOKS.indexOf(b);h=`<div class="head"><h2${b.t.length>3?' class="long"':''}>${b.t}${b.y?`<small>${b.y}</small>`:''}</h2></div>${BOOK_TEXT[b.key].html}${bookList(b.id)}`;}
+  $('noteBody').innerHTML=h;note.scrollTop=0;
+  note.querySelectorAll('[data-book]').forEach(x=>x.addEventListener('click',()=>pickBook(x.dataset.book)));
+  note.querySelectorAll('[data-article]').forEach(x=>x.addEventListener('click',()=>openArticle(x.dataset.article)));
+  if(!padWanted){padWanted=true;const np=nodes.pick_notepad;if(np)animate(np,1,1.1,'pad');else showPanel();}
+  updateOffset();}
+const reader=$('reader'),sheet=$('sheet');
+function openArticle(id){const a=ARTICLES.find(x=>x.id===id);if(!a)return;
+  const body=a.body.map(x=>x.h?`<h2>${x.h}</h2>`:`<p class="t">${x.p}</p>`).join('');
+  sheet.innerHTML=`<button type="button" class="close" id="readerClose">合上 · ESC</button><p class="kicker">${(BOOKS.find(b=>b.key===a.book)||{t:'文章'}).t} · ${a.type||'文章'}${a.year?' · '+a.year:''}${a.draft?' · 未完稿':''}</p><h1>${a.title}</h1>
+    <p class="byline">${a.author}${a.affil?'　'+a.affil:''}${a.meta?'<br>'+a.meta:''}</p>
+    ${a.epi?`<p class="epi">${a.epi}</p>`:''}${a.abstract?`<div class="abs"><b>摘要</b>${a.abstract}<br><b>关键词</b>${a.keywords}</div>`:''}${body}${a.sign?`<p class="sign">${a.sign}</p>`:''}
+    ${a.notes&&a.notes.length?`<div class="notes">注释<ol>${a.notes.map(n=>`<li>${n}</li>`).join('')}</ol></div>`:''}<p class="end">— END —</p>`;
+  $('readerClose').addEventListener('click',closeArticle);sheet.scrollTop=0;reader.classList.add('open');reader.setAttribute('aria-hidden','false');sheet.focus({preventScroll:true});beep(500,.04);}
+function closeArticle(){reader.classList.remove('open');reader.setAttribute('aria-hidden','true');}
+reader.addEventListener('click',e=>{if(e.target===reader)closeArticle();});
+function showPanel(){note.classList.add('open');note.setAttribute('aria-hidden','false');}
+function closePad(){if(!padWanted)return;padWanted=false;const np0=nodes.pick_notepad;if(np0)flyNote(np0,.9999);note.classList.remove('open');note.setAttribute('aria-hidden','true');
+  const np=nodes.pick_notepad;const busy=anims.some(x=>x.kind==='book'&&x.dir<0);if(np)animate(np,-1,1.05,'pad',busy?.95:.34);updateOffset();}
+let padWanted=false;
+const PAD_W=.156,PAD_H=.232,PAD_BIND=.022/.232,PAD_FOOT=.008/.232;        // outline of the 3D legal pad (binding at the top)
+const PANEL={x:0,y:0,w:300,h:400};
+function layoutPanel(){const W=innerWidth,H=innerHeight;let h,w,x,y;
+  if(W<=700){h=Math.min(H*.58,(W-32)/(PAD_W/PAD_H));w=h*PAD_W/PAD_H;x=(W-w)/2;y=H-56-h;}
+  else{h=H-124;w=h*PAD_W/PAD_H;if(w>W*.5){w=W*.5;h=w*PAD_H/PAD_W;}x=W-16-w;y=64+(H-124-h)/2;}
+  Object.assign(PANEL,{x,y,w,h});
+  Object.assign(note.style,{left:x+'px',top:y+'px',width:w+'px',height:h+'px',borderTop:(h*PAD_BIND)+'px solid transparent',borderBottom:(h*PAD_FOOT)+'px solid transparent',paddingTop:'10px'});
+  updateOffset();}
+function updateOffset(){const w=innerWidth,h=innerHeight;if(!padWanted){offT={x:0,y:0};return;}offT=w<=700?{x:0,y:(h-PANEL.y)/2}:{x:PANEL.w/2+8,y:0};}
+function setNav(k){document.querySelectorAll('nav button').forEach(b=>b.setAttribute('aria-current',String(b.dataset.go===k)));}
+function setState(key){viewKey=key;$('backBtn').hidden=key==='home';$('pad').hidden=key!=='game';}
+
+/* ================= books & notepad: one choreography ================= */
+const anims=[];   // {node, t, dir, dur, kind, delay}
+const QFLAT=new T.Quaternion().setFromRotationMatrix(new T.Matrix4().makeBasis(V3(0,1,0),V3(0,0,-1),V3(-1,0,0)));
+const QX90=new T.Quaternion().setFromAxisAngle(V3(1,0,0),Math.PI/2);
+const PADY=.7545,SPX=-.02,PZ=.19;            // leather pad surface, spine x, book centre z
+function homeSize(n){const ud=n.userData;if(ud.ext)return ud.ext;const q=n.quaternion.clone(),p=n.position.clone();
+  n.quaternion.copy(ud.homeQ);n.position.copy(ud.home);n.updateMatrixWorld(true);box3.setFromObject(n);ud.ext=box3.getSize(V3());
+  n.quaternion.copy(q);n.position.copy(p);n.updateMatrixWorld(true);return ud.ext;}
+function bookPose(n,p){   // 0 = in the bookends, 1 = lying open on the pad
+  const ud=n.userData,hinge=nodes['hinge_'+ud.name.slice(5)],e=homeSize(n),t=e.x,h=e.y,dp=e.z;
+  const out=ud.home.clone().add(V3(0,.006,.15));
+  const flat=V3(SPX+dp/2,PADY+t/2+.0006,PZ+h/2),above=flat.clone().add(V3(0,.09,0));
+  const a=sstep(0,.2,p),b=sstep(.16,.6,p),c=sstep(.56,.7,p),o=sstep(.72,1,p);
+  const pos=ud.home.clone().lerp(out,a);if(b>0){pos.lerp(above,b);pos.y+=Math.sin(b*Math.PI)*.06;}if(c>0)pos.lerp(flat,c);
+  n.position.copy(pos);n.quaternion.copy(ud.homeQ).slerp(QFLAT,b);
+  if(hinge)hinge.rotation.y=-o*Math.PI*.88;     // a new hardcover never lies quite flat
+  ud.free.value=sstep(.05,.4,p);}
+const PAD_TOP=V3(0,.0102,-.001);   // centre of the pad's top sheet in its own frame
+function heldPose(){      // where the 3D pad must be so its outline lands exactly on PANEL
+  const W=innerWidth,H=innerHeight,r=PANEL;
+  const v=V3((r.x+r.w/2)/W*2-1,-((r.y+r.h/2)/H*2-1),.5).unproject(camera);
+  const dir=v.sub(camera.position).normalize(),fwd=camera.getWorldDirection(V3());
+  const d=PAD_H*H/(2*Math.tan(camera.fov*Math.PI/360)*r.h);
+  const quat=camera.quaternion.clone().multiply(QX90);
+  const pos=camera.position.clone().addScaledVector(dir,d/dir.dot(fwd)).sub(PAD_TOP.clone().applyQuaternion(quat));
+  return{pos,quat};}
+/* the HTML page rides on the 3D sheet while it flies (a CSS homography), so the writing never disappears */
+function adj3(m){return[m[4]*m[8]-m[5]*m[7],m[2]*m[7]-m[1]*m[8],m[1]*m[5]-m[2]*m[4],m[5]*m[6]-m[3]*m[8],m[0]*m[8]-m[2]*m[6],m[2]*m[3]-m[0]*m[5],m[3]*m[7]-m[4]*m[6],m[1]*m[6]-m[0]*m[7],m[0]*m[4]-m[1]*m[3]];}
+function mul3(a,b){const c=[];for(let i=0;i<3;i++)for(let j=0;j<3;j++){let t=0;for(let k=0;k<3;k++)t+=a[3*i+k]*b[3*k+j];c.push(t);}return c;}
+function basis4(p){const m=[p[0],p[2],p[4],p[1],p[3],p[5],1,1,1];const a=adj3(m);const v=[a[0]*p[6]+a[1]*p[7]+a[2],a[3]*p[6]+a[4]*p[7]+a[5],a[6]*p[6]+a[7]*p[7]+a[8]];return mul3(m,[v[0],0,0,0,v[1],0,0,0,v[2]]);}
+let noteFly=false;
+function flyNote(n,p){
+  const settled=(p>=1&&padWanted)||p<=0;
+  if(settled){if(noteFly){noteFly=false;note.classList.remove('fly');note.style.transform='';note.style.opacity='';}return;}
+  n.updateMatrixWorld(true);const W=innerWidth,H=innerHeight,hw=PAD_W/2,zt=PAD_TOP.z-PAD_H/2,zb=PAD_TOP.z+PAD_H/2;
+  const d=[];[[-hw,zt],[hw,zt],[-hw,zb],[hw,zb]].forEach(([x,z])=>{const v=n.localToWorld(V3(x,PAD_TOP.y,z)).project(camera);d.push((v.x+1)/2*W-PANEL.x,(1-v.y)/2*H-PANEL.y);});
+  const w=PANEL.w,h=PANEL.h,t=mul3(basis4(d),adj3(basis4([0,0,w,0,0,h,w,h])));for(let i=0;i<9;i++)t[i]/=t[8];
+  note.style.transform=`matrix3d(${t[0]},${t[3]},0,${t[6]},${t[1]},${t[4]},0,${t[7]},0,0,1,0,${t[2]},${t[5]},0,${t[8]})`;
+  note.style.opacity=String(sstep(.04,.32,p));if(!noteFly){noteFly=true;note.classList.add('fly');}}
+function padPose(n,p){    // 0 = on the pad, 1 = held up where the panel is
+  const ud=n.userData,lift=ud.home.clone().add(V3(0,.07,.03)),hp=heldPose();
+  const a=sstep(0,.25,p),b=sstep(.18,1,p);
+  const pos=ud.home.clone().lerp(lift,a);pos.lerp(hp.pos,b);n.position.copy(pos);
+  n.quaternion.copy(ud.homeQ).slerp(hp.quat,b);ud.free.value=sstep(.05,.4,p)+sstep(.5,1,p);
+  setPadInk(1-sstep(.02,.3,p));flyNote(n,p);
+  const front=p>.55;if(front!==ud.front){ud.front=front;n.traverse(o=>{if(o.isMesh)o.layers.set(front?1:0);});}}
+function animate(node,dir,dur,kind,delay){let a=anims.find(x=>x.node===node);if(!a){a={node,t:dir>0?0:1,kind};anims.push(a);}
+  a.dir=dir;a.dur=reduce?.01:dur;a.delay=reduce?0:(delay||0);node.userData.moving=true;}
+function stepAnims(dt){for(let i=anims.length-1;i>=0;i--){const a=anims[i];if(a.delay>0){a.delay-=dt;if(a.kind==='pad')padPose(a.node,ease(a.t));continue;}
+  a.t=Math.min(1,Math.max(0,a.t+a.dir*dt/a.dur));const p=ease(a.t);
+  if(a.kind==='book')bookPose(a.node,p);else if(a.kind==='pad')padPose(a.node,p);else cartPose(a.node,p);
+  updateShadow(a.node,true);
+  if((a.dir>0&&a.t>=1)||(a.dir<0&&a.t<=0)){a.node.userData.moving=false;anims.splice(i,1);
+    if(a.kind==='pad'&&a.dir>0&&padWanted)showPanel();}}
+  const np=nodes.pick_notepad;   // a held pad stays glued to the panel while the camera moves
+  if(np&&padWanted&&!anims.some(x=>x.node===np))padPose(np,1);}
+function pickBook(id){const b=BOOKS.find(x=>x.id===id);if(!b)return;seen();if(current===id){openPad(id);return;}
+  const prev=current,padOnDesk=!padWanted;
+  if(prev)animate(nodes['book_'+prev],-1,1.3,'book');
+  current=id;contactOn=false;ejectCart();openPad(id);drawPad();
+  animate(nodes['book_'+id],1,2.4,'book',prev?.75:(padOnDesk?.35:0));beep(520,.05);
+  view='read';moveTo(VIEWS.read(),1.4);setState('read');hideCap();
+  setNav(b.key==='about'||b.key==='notes'||b.key==='contact'?b.key:'list');}
+function closeBook(){if(current){animate(nodes['book_'+current],-1,1.4,'book');current=null;drawPad();}}
+
+/* ================= cartridges: rack -> console ================= */
+let inserted=null;
+function cartPose(n,p){const ud=n.userData;const cons=nodes.pick_console;const slot=V3(...(markers.slot||[.57,.79,-.06]));
+  const above=slot.clone().add(V3(0,.12,0)),lift=ud.home.clone().add(V3(0,.1,0));
+  const a=sstep(0,.3,p),b=sstep(.25,.75,p),c=sstep(.7,1,p);
+  const pos=ud.home.clone().lerp(lift,a);pos.lerp(above,b);pos.lerp(slot,c);n.position.copy(pos);
+  n.quaternion.copy(ud.homeQ).slerp(cons.quaternion,b);ud.free.value=sstep(.1,.5,p)*.85;}
+function clickCart(name){clearTimeout(clickCart.t);if(inserted===name){ejectCart();beep(260,.05);showCap(name);return;}
+  ejectCart();inserted=name;animate(nodes[name],1,1.6,'cart');beep(330,.06);
+  view='focus';moveTo(focusView('pick_console'),1);setState('focus');hideCap();closePad();
+}
+function ejectCart(){if(inserted){animate(nodes[inserted],-1,1.2,'cart');inserted=null;contactOn=false;}}
+function showContact(){if(!inserted)return;closeBook();contactOn=true;view='screen';moveTo(VIEWS.screen());setState('screen');openPad('contact');setNav('');beep(784,.08);}
+
+/* ================= navigation ================= */
+function goHome(){clearTimeout(clickCart.t);closeBook();view='home';moveTo(VIEWS.home(),1.2);setState('home');closePad();hideCap();setNav('');}
+function pressBtn(n){const b=nodes[n];if(!b)return;if(!b.userData.home0)b.userData.home0=b.position.clone();b.userData.press=0;pressed.add(b);beep(n==='pick_crt_power'?180:420,.04);}
+function setCrtPower(on){if(on===crtOn)return;crtOn=on;crtAnim={on,t0:clock.elapsedTime};if(on)bootT0=clock.elapsedTime+.45;monLed.forEach(m=>m.uniforms.strength.value=on?3:.04);}
+function goIntro(){clearTimeout(clickCart.t);closeBook();closePad();closeArticle();view='home';moveTo(VIEWS.intro(),1.2);setState('intro');hideCap();setNav('');}
+function focusItem(name){
+  if(name==='pick_crt_power'){pressBtn(name);setCrtPower(!crtOn);return;}
+  if(name==='pick_crt_home'){pressBtn(name);goIntro();return;}
+  if(name==='pick_crt_bw'){pressBtn(name);POST.bwT=POST.bwT>.5?0:1;return;}if(name==='pick_lamp'){setLamp(!lampOn);showCap(name);return;}
+  if(name.startsWith('book_'))return pickBook(name.slice(5));
+  if(name.startsWith('gamecart_'))return clickCart(name);
+  if(name==='pick_notepad')return openList();
+  if(name==='pick_handheld')return openGame();
+  if(name==='pick_radio'||name==='pick_oscilloscope'){if(radioOn)stopRadio();else startRadio();ITEMS.pick_radio[1]=radioOn?'正在播放……再点一下关掉。':'点一下开始播放，再点一下关掉。';name='pick_radio';}
+  if(name==='pick_computer'&&(current||contactOn)){view='screen';moveTo(VIEWS.screen());setState('screen');return;}
+  closeBook();closePad();view='focus';moveTo(focusView(name==='pick_radio'?'pick_radio':name));setState('focus');showCap(name);setNav('');beep(600,.03);}
+function openList(){if(view!=='home'&&view!=='read'){view='home';moveTo(VIEWS.home());}setState('notepad');hideCap();openPad('list');setNav('list');}
+function openGame(){closeBook();closePad();view='game';moveTo(VIEWS.game());setState('game');showCap('pick_handheld');$('capS').textContent='用方向键控制，手机上用左下角的按键。撞到自己会少一条命。';setNav('');}
+
+/* ================= input ================= */
+const tip=$('tip'),ray=new T.Raycaster(),ndc=new T.Vector2();
+function ndcAt(cx,cy){const r=canvas.getBoundingClientRect();ndc.set((cx-r.left)/r.width*2-1,-((cy-r.top)/r.height)*2+1);ray.setFromCamera(ndc,camera);}
+function hitAt(cx,cy){ndcAt(cx,cy);const h=ray.intersectObjects(allMeshes,false)[0];return h?{pick:h.object.userData.pick||null,point:h.point}:null;}
+let hover=null;const ptrs=new Map();let drag=null,pinch=null;
+canvas.addEventListener('pointerdown',e=>{canvas.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(ptrs.size===1)drag={x:e.clientX,y:e.clientY,sx:e.clientX,sy:e.clientY,moved:false};
+  if(ptrs.size===2){const [a,b]=[...ptrs.values()];pinch={d:Math.hypot(a.x-b.x,a.y-b.y),z:orbit.zoomT};drag=null;}});
+canvas.addEventListener('pointermove',e=>{
+  if(ptrs.has(e.pointerId))ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(pinch&&ptrs.size===2){const [a,b]=[...ptrs.values()];const d=Math.hypot(a.x-b.x,a.y-b.y);orbit.zoomT=Math.min(zMax(),Math.max(.3,pinch.z*pinch.d/Math.max(20,d)));return;}
+  if(drag){const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(!drag.moved&&Math.hypot(e.clientX-drag.sx,e.clientY-drag.sy)>6){drag.moved=true;canvas.classList.add('dragging');tip.classList.remove('on');}
+    if(drag.moved){orbit.yawT=Math.max(-.5,Math.min(.5,orbit.yawT-dx*.0045));orbit.pitchT=Math.max(-.32,Math.min(.28,orbit.pitchT-dy*.0035));drag.x=e.clientX;drag.y=e.clientY;}return;}
+  parT.set((e.clientX/window.innerWidth)*2-1,(e.clientY/window.innerHeight)*2-1);if(e.pointerType==='touch')return;
+  const h=hitAt(e.clientX,e.clientY);const p=h&&h.pick;hover=p;
+  if(p&&ITEMS[p]){tip.textContent=ITEMS[p][0];tip.style.left=Math.min(e.clientX+14,window.innerWidth-tip.offsetWidth-8)+'px';tip.style.top=(e.clientY+16)+'px';tip.classList.add('on');canvas.style.cursor='pointer';}
+  else{tip.classList.remove('on');canvas.style.cursor='';}});
+function endPtr(e){ptrs.delete(e.pointerId);if(ptrs.size<2)pinch=null;
+  if(drag&&ptrs.size===0){const wasDrag=drag.moved;drag=null;canvas.classList.remove('dragging');if(!wasDrag){const h=hitAt(e.clientX,e.clientY);if(h&&h.pick)focusItem(h.pick);}}}
+canvas.addEventListener('pointerup',endPtr);canvas.addEventListener('pointercancel',e=>{ptrs.delete(e.pointerId);drag=null;pinch=null;canvas.classList.remove('dragging');});
+canvas.addEventListener('pointerleave',()=>{tip.classList.remove('on');parT.set(0,0);hover=null;});
+canvas.addEventListener('wheel',e=>{e.preventDefault();const k=Math.exp(e.deltaY*.0012);const z=Math.min(zMax(),Math.max(.3,orbit.zoomT*k));
+  if(k<1){const h=hitAt(e.clientX,e.clientY);if(h){const look=camLook.clone().add(orbit.shiftT);orbit.shiftT.addScaledVector(h.point.clone().sub(look),.18*(1-k)/.12);if(orbit.shiftT.length()>.7)orbit.shiftT.setLength(.7);}}
+  else if(z>=.98)orbit.shiftT.multiplyScalar(.6);
+  orbit.zoomT=z;},{passive:false});
+function setLamp(on){lampOn=on;$('lampBtn').textContent='台灯：'+(on?'开':'关');beep(on?440:220,.05);}
+document.querySelectorAll('nav button').forEach(b=>b.addEventListener('click',()=>{const g=b.dataset.go;if(g==='list')openList();else pickBook(BOOKS.find(x=>x.key===g).id);}));
+$('brand').addEventListener('click',goHome);$('backBtn').addEventListener('click',goHome);$('noteClose').addEventListener('click',goHome);
+$('lampBtn').addEventListener('click',()=>setLamp(!lampOn));
+$('soundBtn').addEventListener('click',e=>{soundOn=!soundOn;e.currentTarget.textContent='声音：'+(soundOn?'开':'关');beep(660,.06);});
+const toastEl=$('toast');let toastT=0;function toast(m){toastEl.textContent=m;toastEl.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>toastEl.classList.remove('on'),2600);}
+const CODE=['up','up','down','down','left','right','left','right','b','a','b','a'];let buf=[],party=0,lampOn=true;
+function input(k){if(viewKey==='game')snakeInput(k);buf.push(k);if(buf.length>CODE.length)buf.shift();
+  if(buf.join()===CODE.join()){buf=[];konami=true;party=2.4;S.lives=Math.max(S.lives,30);toast('秘籍生效：30 条命');[523,659,784,1047].forEach((f,i)=>beep(f,.12,i*.1));}}
+const KEYMAP={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right',a:'a',b:'b',A:'a',B:'b'};
+window.addEventListener('keydown',e=>{if(e.key==='Escape'){if(reader.classList.contains('open'))closeArticle();else goHome();return;}if(reader.classList.contains('open'))return;const k=KEYMAP[e.key];if(!k)return;if(e.key.startsWith('Arrow'))e.preventDefault();input(k);});
+document.querySelectorAll('#pad button').forEach(b=>b.addEventListener('pointerdown',e=>{e.preventDefault();input(b.dataset.k);}));
+
+/* ================= loop ================= */
+function resize(){const w=window.innerWidth,h=window.innerHeight;renderer.setSize(w,h,false);camera.aspect=w/h;
+  const hf=64*Math.PI/180;camera.fov=camera.aspect>=1?Math.min(60,2*Math.atan(Math.tan(hf/2)/camera.aspect)*180/Math.PI):62;camera.updateProjectionMatrix();layoutPanel();resizePost();}
+
+/* ================= the VHS look: post-processing + air ================= */
+const POST={amt:1,target:1,calm:0,bw:0,bwT:0};
+try{if(localStorage.getItem('shuwu.look')==='raw'){POST.amt=POST.target=0;}}catch(e){}
+const rtS=new T.WebGLRenderTarget(4,4,{samples:renderer.capabilities.isWebGL2?4:0});
+const mkRT=()=>new T.WebGLRenderTarget(4,4,{minFilter:T.LinearFilter,magFilter:T.LinearFilter,depthBuffer:false});
+const rH=mkRT(),q1=mkRT(),q2=mkRT(),e1=mkRT(),e2=mkRT(),s1=mkRT(),s2=mkRT();
+const pScene=new T.Scene(),pCam=new T.OrthographicCamera(-1,1,1,-1,0,1),quad=new T.Mesh(new T.PlaneGeometry(2,2));quad.frustumCulled=false;pScene.add(quad);
+const QV=`varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}`;
+const pm=(frag,uni)=>new T.ShaderMaterial({vertexShader:QV,fragmentShader:frag,uniforms:uni,depthTest:false,depthWrite:false});
+const mBright=pm(`uniform sampler2D t;varying vec2 vUv;void main(){vec3 c=texture2D(t,vUv).rgb;float l=dot(c,vec3(.2126,.7152,.0722));gl_FragColor=vec4(c*smoothstep(.6,.95,l),1.);}`,{t:{value:null}});
+const mDown=pm(`uniform sampler2D t;uniform vec2 px;varying vec2 vUv;void main(){gl_FragColor=(texture2D(t,vUv+px*vec2(-.5,-.5))+texture2D(t,vUv+px*vec2(.5,-.5))+texture2D(t,vUv+px*vec2(-.5,.5))+texture2D(t,vUv+px*vec2(.5,.5)))*.25;}`,{t:{value:null},px:{value:new T.Vector2()}});
+const mBlur=pm(`uniform sampler2D t;uniform vec2 d;varying vec2 vUv;void main(){vec4 c=texture2D(t,vUv)*.227027;c+=(texture2D(t,vUv+d*1.384615)+texture2D(t,vUv-d*1.384615))*.316216;c+=(texture2D(t,vUv+d*3.230769)+texture2D(t,vUv-d*3.230769))*.070270;gl_FragColor=c;}`,{t:{value:null},d:{value:new T.Vector2()}});
+const mFinal=pm(`precision highp float;uniform sampler2D tS;uniform sampler2D tB1;uniform sampler2D tB2;uniform sampler2D tB3;
+uniform vec2 res;uniform float time;uniform float amt;uniform float calm;uniform float bw;varying vec2 vUv;
+float h(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}
+float luma(vec3 c){return dot(c,vec3(.2126,.7152,.0722));}
+void main(){
+  float k=amt,kc=amt*(1.-.8*calm);vec2 uv=vUv;
+  float line=floor(uv.y*res.y/3.),fr=floor(time*24.);
+  float wob=(h(vec2(line,fr))-.5)*.7/res.x*kc;                                   // tape jitter, a pixel or so
+  float band=0.;                                                                     // (the tracking band now lives on the CRT only)
+  wob+=band*(h(vec2(line,fr+3.))-.35)*7./res.x*kc;uv.x+=wob;
+  vec2 c2=uv-.5;vec2 ca=c2*dot(c2,c2)*.02*kc;                                        // chromatic fringe, strongest in the corners
+  vec3 col=vec3(texture2D(tS,uv+ca).r,texture2D(tS,uv).g,texture2D(tS,uv-ca).b);
+  vec2 px=vec2(1./res.x,0.)*(1.+band*3.);
+  vec3 bl=(texture2D(tS,uv+px*2.).rgb+texture2D(tS,uv-px*2.).rgb+texture2D(tS,uv+px*5.).rgb+texture2D(tS,uv-px*5.).rgb)*.25;
+  float l=luma(col);col=l+mix(col-l,bl-luma(bl),.65*kc);                           // VHS colour bleeds sideways, detail stays
+  vec3 b1=texture2D(tB1,uv).rgb,b2=texture2D(tB2,uv).rgb,b3=texture2D(tB3,uv).rgb;
+  float bk=k*(1.-.7*calm)*(1.-.9*clamp(luma(b1)*1.6,0.,1.));                      // glow spills outward, never over the bright thing itself
+  col+=(b2*.6+b3*.9)*bk;                                                            // glow around lamp, screen and window lights
+  col+=(b2*.3+b3*.6)*vec3(1.,.38,.2)*bk;                                            // warm halation bleeding into the dark
+  l=luma(col);
+  col+=vec3(.022,.024,.05)*(1.-smoothstep(0.,.45,l))*k;                             // shadows lift toward blue-violet
+  col*=mix(vec3(1.),vec3(1.05,1.,.9),smoothstep(.35,1.,l)*k);                       // highlights warm, like old tape
+  col=mix(vec3(luma(col)),col,1.-.2*k);                                             // a little washed out
+  col=mix(col,col*.9+.035,k);                                                       // no true black
+  col=mix(col,vec3(luma(col))*vec3(1.,.985,.96),bw);col=mix(col,smoothstep(0.,1.,col),bw*.35);   // black & white knob
+  float vd=length(c2*vec2(1.,.82));col*=1.-smoothstep(.32,.9,vd)*.52*k;              // vignette
+  col*=1.-.045*k*(.5+.5*sin(gl_FragCoord.y*1.5708));                                // faint scanlines
+  float g=h(gl_FragCoord.xy*.71+vec2(fr*17.31,fr*7.13))-.5;col+=g*.075*k*(1.-.45*luma(col));   // film grain
+  col+=band*.05*kc*(h(vec2(gl_FragCoord.x*.3,fr))-.3);                              // snow in the tracking band
+  gl_FragColor=vec4(clamp(col,0.,1.),1.);}`,{tS:{value:rtS.texture},tB1:{value:q1.texture},tB2:{value:e1.texture},tB3:{value:s1.texture},res:{value:new T.Vector2(1,1)},time:{value:0},amt:{value:1},calm:{value:0},bw:{value:0}});
+function pass(mat,target){quad.material=mat;renderer.setRenderTarget(target);renderer.render(pScene,pCam);}
+function down(src,dst){mDown.uniforms.t.value=src.texture;mDown.uniforms.px.value.set(1/src.width,1/src.height);pass(mDown,dst);}
+function blur(a,b){mBlur.uniforms.t.value=a.texture;mBlur.uniforms.d.value.set(1/a.width,0);pass(mBlur,b);mBlur.uniforms.t.value=b.texture;mBlur.uniforms.d.value.set(0,1/a.height);pass(mBlur,a);}
+function resizePost(){const v=renderer.getDrawingBufferSize(new T.Vector2());rtS.setSize(v.x,v.y);
+  [[rH,2],[q1,4],[q2,4],[e1,8],[e2,8],[s1,16],[s2,16]].forEach(([r,d])=>r.setSize(Math.max(1,v.x/d|0),Math.max(1,v.y/d|0)));mFinal.uniforms.res.value.copy(v);}
+function runPost(t,dt){POST.amt+=(POST.target-POST.amt)*Math.min(1,dt*4);POST.calm+=((padWanted?1:0)-POST.calm)*Math.min(1,dt*5);
+  mBright.uniforms.t.value=rtS.texture;pass(mBright,rH);down(rH,q1);blur(q1,q2);down(q1,e1);blur(e1,e2);down(e1,s1);blur(s1,s2);
+  POST.bw+=(POST.bwT-POST.bw)*Math.min(1,dt*3);const u=mFinal.uniforms;u.time.value=t;u.amt.value=POST.amt;u.calm.value=POST.calm;u.bw.value=POST.bw;pass(mFinal,null);}
+$('lookBtn').addEventListener('click',()=>setLook(POST.target<.5));if(POST.target<.5)$('lookBtn').textContent='画面：原始';
+function setLook(on){POST.target=on?1:0;$('lookBtn').textContent='画面：'+(on?'录像带':'原始');try{localStorage.setItem('shuwu.look',on?'vhs':'raw');}catch(e){}}
+
+/* dust drifting through the lamp beam (and a little in the moonlight), plus a faint shaft of light */
+const atmos=[];
+function initAtmos(){
+  const head=V3(.3,1.22,-.1),aim=V3(.12,.75,.05),dir=aim.clone().sub(head).normalize(),o=head.clone().addScaledVector(dir,.095),L=aim.distanceTo(o);
+  const DV=`uniform float time;uniform float px;uniform vec3 bmin;uniform vec3 bsize;uniform vec3 o;uniform vec3 dir;uniform float L;uniform float cone;
+    attribute float seed;varying float vA;
+    void main(){vec3 p=position+vec3(sin(time*.07+seed*13.)*.03,-time*.007*(.4+seed),cos(time*.05+seed*7.)*.03);p=bmin+mod(p-bmin,bsize);
+      float m=1.;if(cone>.5){vec3 d=p-o;float a=dot(d,dir);float r=mix(.05,.24,clamp(a/L,0.,1.));float q=length(d-dir*a);
+        m=smoothstep(r,r*.45,q)*smoothstep(0.,.06,a)*smoothstep(L,L*.75,a);}
+      float tw=.35+.65*pow(.5+.5*sin(time*(.8+seed*2.3)+seed*40.),3.);vA=m*tw;
+      vec4 mv=modelViewMatrix*vec4(p,1.);gl_Position=projectionMatrix*mv;gl_PointSize=max(2.,(.0028+seed*.0035)*px/-mv.z);}`;
+  const DF=`uniform vec3 color;uniform float k;varying float vA;void main(){float d=length(gl_PointCoord-.5);float a=smoothstep(.5,.05,d)*vA*k*1.8;gl_FragColor=vec4(color*a,a);}`;
+  function dust(n,bmin,bmax,color,cone){const g=new T.BufferGeometry(),P=new Float32Array(n*3),S=new Float32Array(n);const sz=bmax.clone().sub(bmin);
+    for(let i=0;i<n;i++){P[i*3]=bmin.x+Math.random()*sz.x;P[i*3+1]=bmin.y+Math.random()*sz.y;P[i*3+2]=bmin.z+Math.random()*sz.z;S[i]=Math.random();}
+    g.setAttribute('position',new T.BufferAttribute(P,3));g.setAttribute('seed',new T.BufferAttribute(S,1));
+    const m=new T.ShaderMaterial({vertexShader:DV,fragmentShader:DF,transparent:true,depthWrite:false,blending:T.AdditiveBlending,
+      uniforms:{time:{value:0},px:{value:800},bmin:{value:bmin},bsize:{value:sz},o:{value:o},dir:{value:dir},L:{value:L},cone:{value:cone?1:0},color:{value:color},k:{value:1}}});
+    const pts=new T.Points(g,m);pts.frustumCulled=false;pts.renderOrder=4;scene.add(pts);atmos.push({m,cone});}
+  const bb=new T.Box3().setFromPoints([o.clone().addScalar(-.1),o.clone().addScalar(.1),aim.clone().addScalar(-.27),aim.clone().addScalar(.27)]);
+  dust(1700,bb.min,bb.max,V3(1.,.84,.6),true);
+  dust(260,V3(.2,.9,-.42),V3(1.,1.65,-.05),V3(.55,.66,1.),false);
+  const geo=new T.CylinderGeometry(.045,.24,L,40,1,true);geo.translate(0,-L/2,0);
+  const sm=new T.ShaderMaterial({transparent:true,depthWrite:false,blending:T.AdditiveBlending,side:T.FrontSide,uniforms:{k:{value:1}},
+    vertexShader:`varying vec3 vN;varying vec3 vV;varying float vY;void main(){vY=uv.y;vec4 mv=modelViewMatrix*vec4(position,1.);vN=normalize(normalMatrix*normal);vV=normalize(-mv.xyz);gl_Position=projectionMatrix*mv;}`,
+    fragmentShader:`uniform float k;varying vec3 vN;varying vec3 vV;varying float vY;void main(){float a=pow(abs(dot(vN,vV)),2.)*smoothstep(0.,.45,vY)*smoothstep(1.,.8,vY)*.11*k;gl_FragColor=vec4(vec3(1.,.8,.55)*a,a);}`});
+  const shaft=new T.Mesh(geo,sm);shaft.position.copy(o);shaft.quaternion.setFromUnitVectors(V3(0,-1,0),dir);shaft.renderOrder=4;scene.add(shaft);atmos.push({m:sm,shaft:true});}
+function initGlass(){
+  const geo=new T.PlaneGeometry(.78,1.22);
+  const m=new T.ShaderMaterial({transparent:true,depthWrite:false,uniforms:{city:{value:cityTex},time:U.time,k:{value:1}},
+    vertexShader:`varying vec2 vM;varying vec3 vW;void main(){vM=(uv-.5)*vec2(.78,1.22);vec4 w=modelMatrix*vec4(position,1.);vW=w.xyz;gl_Position=projectionMatrix*viewMatrix*w;}`,
+    fragmentShader:`precision highp float;varying vec2 vM;varying vec3 vW;uniform sampler2D city;uniform float time;uniform float k;
+    float hs(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+    void main(){
+      vec2 n=vec2(0.);float a=0.;
+      {vec2 g=vM*34.;vec2 id=floor(g),f=fract(g)-.5;float h=hs(id);vec2 o=(vec2(hs(id+1.3),hs(id+7.1))-.5)*.55;   // beads that come and go
+       float life=fract(time*.05+h*3.);float r=(.1+.2*hs(id+3.))*smoothstep(0.,.08,life)*smoothstep(1.,.75,life);
+       vec2 dv=f-o;float dd=length(dv*vec2(1.,1.2));float mm=smoothstep(r,r*.7,dd)*step(.42,h);n+=dv/max(r,.01)*mm;a=max(a,mm);}
+      {float cw=.045;float cx=floor(vM.x/cw);float hc=hs(vec2(cx,4.2));                                              // drops sliding down
+       float lx=(fract(vM.x/cw)-.5)*cw+sin(vM.y*22.+hc*9.)*.004;
+       float head=.75-fract(time*(.035+.06*hc)+hc*7.)*1.6;float dy=vM.y-head;
+       float act=step(.55,hc);
+       float drop=smoothstep(.0068,.0048,length(vec2(lx,dy*.8)))*act;
+       float trail=smoothstep(.0022,.0008,abs(lx))*step(0.,dy)*smoothstep(.22,.0,dy)*act*.8;
+       float bead=smoothstep(.003,.0018,length(vec2(lx,(fract(dy*55.)-.5)/55.)))*step(.02,dy)*smoothstep(.2,.05,dy)*act*step(.6,hs(vec2(cx,floor(dy*55.))));
+       n+=vec2(lx/.0068,dy*.8/.0068)*drop;a=max(a,max(drop,max(trail*.5,bead)));}
+      vec3 rd=normalize(vW-cameraPosition);float tt=(-10.-vW.z)/rd.z;vec3 hp=vW+rd*tt;
+      vec2 cu=(vec2((hp.x+1.85)/10.,(hp.y+.925)/6.25)-.5)*vec2(2.,2.4)+.5-n*.06;                                                         // each drop shows the city upside-down, magnified
+      vec3 c=texture2D(city,cu,2.).rgb;
+      float spec=smoothstep(.55,.95,dot(normalize(vec3(n,.6)),normalize(vec3(-.4,.6,.7))))*a;
+      vec3 col=c*1.15+vec3(.9,.95,1.)*spec*.45;
+      float haze=.06;
+      gl_FragColor=vec4(mix(vec3(.05,.08,.09),col,a),(haze+a*.88)*k);}`});
+  const g=new T.Mesh(geo,m);g.position.set(.59,1.59,-.512);g.renderOrder=2;scene.add(g);atmos.push({m,glass:true});}
+function stepAtmos(t){U.time.value=t;const px=renderer.getPixelRatio()*window.innerHeight/(2*Math.tan(camera.fov*Math.PI/360));
+  atmos.forEach(a=>{const u=a.m.uniforms;if(u.time)u.time.value=t;if(u.px)u.px.value=px;if(a.glass)return;u.k.value=POST.amt*(a.cone||a.shaft?lampLevel:.7);});}
+window.addEventListener('resize',resize);
+let lastScr=0,lampLevel=1;const Y=V3(0,1,0),tmp=V3(),look=V3();
+function frame(){const dt=Math.min(clock.getDelta(),.05),t=clock.elapsedTime;
+  if(tw){tw.t+=dt/tw.d;const e=ease(Math.min(tw.t,1));camPos.lerpVectors(tw.p0,tw.p1,e);camLook.lerpVectors(tw.l0,tw.l1,e);if(tw.t>=1)tw=null;}
+  const kk=Math.min(1,dt*7);orbit.yaw+=(orbit.yawT-orbit.yaw)*kk;orbit.pitch+=(orbit.pitchT-orbit.pitch)*kk;orbit.zoom+=(orbit.zoomT-orbit.zoom)*kk;orbit.shift.lerp(orbit.shiftT,kk);
+  par.lerp(parT,.05);const pk=(view==='home'&&!reduce&&!drag)?1:.2;
+  look.copy(camLook).add(orbit.shift);tmp.copy(camPos).sub(camLook);
+  tmp.applyAxisAngle(Y,orbit.yaw);const right=V3().crossVectors(tmp,Y).normalize();tmp.applyAxisAngle(right,orbit.pitch);tmp.multiplyScalar(orbit.zoom);
+  camera.position.copy(look).add(tmp);camera.position.x+=par.x*.05*pk;camera.position.y-=par.y*.03*pk;camera.lookAt(look);
+  off.x+=(offT.x-off.x)*.08;off.y+=(offT.y-off.y)*.08;const W=window.innerWidth,H=window.innerHeight;
+  if(Math.abs(off.x)>.5||Math.abs(off.y)>.5)camera.setViewOffset(W,H,off.x,off.y,W,H);else if(camera.view&&camera.view.enabled)camera.clearViewOffset();
+  let lt=lampOn?1:0;if(party>0){party-=dt;lt=(Math.sin(t*24)>0)?1:.15;}
+  lampLevel+=(lt-lampLevel)*Math.min(1,dt*(party>0?30:8));U.lamp.value=lampLevel;lampEmit.forEach(m=>m.uniforms.strength.value=.15+3.85*lampLevel);
+  camera.updateMatrixWorld();stepAnims(dt);
+  pressed.forEach(b=>{b.userData.press+=dt/.22;const k=Math.sin(Math.min(1,b.userData.press)*Math.PI);b.position.copy(b.userData.home0);b.position.z-=.0028*k;if(b.userData.press>=1){b.position.copy(b.userData.home0);pressed.delete(b);}});
+  movables.forEach(n=>{if(n.userData.name.startsWith('book_')&&!n.userData.moving&&n.userData.name.slice(5)!==current){const want=hover===n.userData.name?.016:hintNudge(n,t);const cur=n.userData.hov||0;const nx=cur+(want-cur)*Math.min(1,dt*10);if(Math.abs(nx-cur)>1e-5){n.userData.hov=nx;n.position.z=n.userData.home.z+nx;updateShadow(n,true);}}});
+  steams.forEach((s,i)=>{s.material.uniforms.time.value=t;s.rotation.y=Math.atan2(camera.position.x-s.position.x,camera.position.z-s.position.z)+(i-1)*.5;});
+  if(view==='game'&&S.state==='play'){S.acc+=dt;while(S.acc>.12){S.acc-=.12;snakeStep();}}
+  if(radioOn&&ac&&ac.currentTime>radioEnd+.3){stopRadio();ITEMS.pick_radio[1]='点一下开始播放，再点一下关掉。';}
+  if(t-lastScr>1/15){lastScr=t;drawCRT(t);drawHH(t);drawScope(t);}
+  stepAtmos(t);renderer.setRenderTarget(rtS);renderer.clear();camera.layers.set(0);renderer.render(scene,camera);
+  const np=nodes.pick_notepad;if(np&&np.userData.front){renderer.clearDepth();camera.layers.set(1);renderer.render(scene,camera);camera.layers.set(0);}
+  runPost(t,dt);placeHint();requestAnimationFrame(frame);}
+let hintAt=null,hintDone=false;try{hintDone=localStorage.getItem('shuwu.seen')==='1';}catch(e){}
+const hintEl=$('hint');
+function hintNudge(n,t){if(hintDone||t<4.5)return 0;const i=BOOKS.findIndex(b=>'book_'+b.id===n.userData.name);const k=((t-4.5)%5)-i*.11;return k>0&&k<.55?Math.sin(k/.55*Math.PI)*.013:0;}
+function placeHint(){if(!hintAt||hintDone||current||padWanted||tw||viewKey!=='intro'&&viewKey!=='home'){hintEl.classList.remove('on');return;}
+  const p=hintAt.clone().project(camera);hintEl.style.left=((p.x+1)/2*window.innerWidth)+'px';hintEl.style.top=((1-p.y)/2*window.innerHeight)+'px';hintEl.classList.add('on');}
+function seen(){if(hintDone)return;hintDone=true;hintEl.classList.remove('on');try{localStorage.setItem('shuwu.seen','1');}catch(e){}}
+window.__act=n=>focusItem(n);window.__look=(p,l)=>moveTo({pos:V3(...p),look:V3(...l)},.01);
+load().then(()=>{resize();initAtmos();initGlass();drawPad();movables.forEach(n=>updateShadow(n,true));
+  const h=fit(VIEWS.intro());tw={p0:camPos.clone(),l0:camLook.clone(),p1:h.pos,l1:h.look,t:0,d:reduce?.01:2.4};setState('intro');
+  {const bb=new T.Box3();BOOKS.forEach(b=>bb.expandByObject(nodes['book_'+b.id]));hintAt=V3((bb.min.x+bb.max.x)/2,bb.max.y+.035,(bb.min.z+bb.max.z)/2+.02);}
+  requestAnimationFrame(frame);setTimeout(()=>cover.classList.add('gone'),200);
+  const hs=(location.hash||'').slice(1);setTimeout(()=>{const hb=BOOKS.find(x=>x.key===hs);if(hb)pickBook(hb.id);else if(hs==='list')openList();else if(hs==='game')openGame();},reduce?50:2500);
+  if(document.fonts&&document.fonts.load)Promise.all(['24px "ZCOOL QingKe HuangYou"','24px "Noto Sans SC"','24px VT323','40px "Long Cang"','34px Caveat'].map(f=>document.fonts.load(f,'书架关于我故乡同济大学记者香港现在手记联系第本正在读0123456789—今').catch(()=>{}))).then(drawPad);
+}).catch(err=>{console.error(err);fail('书屋的场景文件没有加载成功，刷新一下试试。');});
+})();
+</script>
+</body>
+</html>
